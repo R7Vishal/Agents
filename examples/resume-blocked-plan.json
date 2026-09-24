@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "task_id": "T1",
+      "description": "Always succeeds",
+      "rationale": "Create checkpoint",
+      "command": "python -c \"print('ok')\"",
+      "dependencies": []
+    },
+    {
+      "task_id": "T2",
+      "description": "Fails until manual fix",
+      "rationale": "Exercise resume preview",
+      "command": "python -c \"import pathlib,sys; sys.exit(0 if pathlib.Path('resume.flag').exists() else 1)\"",
+      "dependencies": ["T1"]
+    }
+  ]
+}

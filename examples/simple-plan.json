@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "task_id": "T001",
+      "description": "Compile Python sources",
+      "rationale": "Fast syntax baseline",
+      "command": "python -m compileall src",
+      "validate_command": "python -m compileall src",
+      "dependencies": [],
+      "expected_result": "Compile succeeds",
+      "validation_method": "exit code",
+      "repair_commands": []
+    },
+    {
+      "task_id": "T002",
+      "description": "Run unit tests",
+      "rationale": "Behavior validation",
+      "command": "python -m pytest -q",
+      "validate_command": "python -m pytest -q",
+      "dependencies": ["T001"],
+      "expected_result": "Tests pass",
+      "validation_method": "exit code",
+      "repair_commands": []
+    }
+  ]
+}

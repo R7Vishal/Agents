@@ -1,0 +1,3 @@
+[console_scripts]
+coding-agent = coding_agent.main:main
+coding-agent-ui = coding_agent.web_app:main

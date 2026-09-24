@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Coding Agent: UI",
+      "type": "shell",
+      "command": "coding-agent-ui",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Coding Agent: Run Config",
+      "type": "shell",
+      "command": "coding-agent run-config --config .vscode/coding-agent.json",
+      "problemMatcher": []
+    },
+    {
+      "label": "Coding Agent: Run Config (first-run)",
+      "type": "shell",
+      "command": "coding-agent run-config --config .vscode/coding-agent.json --mode first-run",
+      "problemMatcher": []
+    },
+    {
+      "label": "Coding Agent: Run Config (run-plan)",
+      "type": "shell",
+      "command": "coding-agent run-config --config .vscode/coding-agent.json --mode run-plan",
+      "problemMatcher": []
+    },
+    {
+      "label": "Coding Agent: Rotate Key",
+      "type": "shell",
+      "command": "coding-agent run-config --config .vscode/coding-agent.json --mode rotate-key",
+      "problemMatcher": []
+    },
+    {
+      "label": "Coding Agent: Provider Contract Tests",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\run-provider-contract-tests.ps1 -ProjectPath .",
+      "problemMatcher": []
+    }
+  ]
+}

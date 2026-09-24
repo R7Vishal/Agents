@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Coding Agent UI (Flask)",
+      "type": "python",
+      "request": "launch",
+      "module": "coding_agent.web_app",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Coding Agent Run Config",
+      "type": "python",
+      "request": "launch",
+      "module": "coding_agent.main",
+      "args": [
+        "run-config",
+        "--config",
+        ".vscode/coding-agent.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}

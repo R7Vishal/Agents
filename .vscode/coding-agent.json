@@ -1,0 +1,14 @@
+{
+  "mode": "first-run",
+  "repo": "..\\eai-7536-countrycxs",
+  "requirement": "Perform first-run repository discovery and baseline assessment.",
+  "requirement_file": "",
+  "run_baseline": false,
+  "output": "reports/vscode-agent-output.md",
+  "plan_file": "examples/simple-plan.json",
+  "max_repair_attempts_per_task": 2,
+  "resume_run_id": "",
+  "resume_latest": false,
+  "resume_dry_run": false,
+  "resume_max_risk": 5
+}
