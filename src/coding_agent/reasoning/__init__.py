@@ -1,5 +1,4 @@
-from .lmstudio import LMStudioProvider
-from .provider import LLMGateway, LLMProvider, MockLLMProvider, NullLLMProvider
+from .provider import LLMGateway, LLMProvider, MockLLMProvider, NullLLMProvider, OpenAICompatibleProvider
 from .router import HeuristicTaskClassifier, ModelRouter
 from .types import (
     HardwareProfile,
@@ -24,6 +23,7 @@ __all__ = [
     "ModelProfile",
     "ModelRouter",
     "NullLLMProvider",
+    "OpenAICompatibleProvider",
     "ProviderAuditEvent",
     "ProviderError",
     "ProviderErrorCode",

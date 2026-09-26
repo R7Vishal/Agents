@@ -17,6 +17,9 @@
 - Retrieval adapter and structured editing layer with rollback
 - Safety/approval governance and staged validation pipeline
 - Web UI for planning, approval, execution, and activity trace
+- Workspace manager + centralized tool registry + dynamic capability manager
+- Persistent semantic index and approval-token safety workflow
+- Acceptance and Copilot-parity benchmark automation scripts
 
 ## 3) Required tools to run on Windows
 
@@ -65,6 +68,10 @@ Examples:
   - Exports full project code as zip (with safe exclusions)
 - scripts/run-provider-contract-tests.ps1
   - Runs provider contract/fallback harness tests
+- scripts/run_acceptance_scenarios.py
+  - Executes conversational acceptance scenarios (1-8) and writes report
+- scripts/run_copilot_parity_benchmark.py
+  - Executes graded simple/medium/complex parity benchmark and writes scored report
 
 ## 8) Export for another machine
 
@@ -76,10 +83,24 @@ This creates:
 
 - coding-agent-portable.zip in project root
 
-## 9) Verification checklist
+## 9) New UI and API operational features
+
+- Guide page: `GET /guide`
+- One-click acceptance run: `POST /api/acceptance/run`
+- Acceptance report view: `GET /api/acceptance/report`
+- Semantic index rebuild: `POST /api/index/rebuild`
+- Reasoning telemetry: `GET /api/reasoning/telemetry`
+- Approval workflow:
+  - `POST /api/approvals/request`
+  - `POST /api/approvals/approve`
+  - `GET /api/approvals`
+
+## 10) Verification checklist
 
 - python --version returns 3.10+
 - setup-and-run script completes without errors
 - UI opens at http://127.0.0.1:5050 (ui mode)
 - python -m pytest -q passes when test dependencies are installed
 - zip export file exists in project root
+- acceptance report generated at `reports/acceptance-scenarios-report.md`
+- parity benchmark report generated at `reports/copilot-parity-benchmark.md`

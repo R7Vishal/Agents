@@ -1,9 +1,8 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
   <title>DevAgent Workspace</title>
   <style>
     :root {
@@ -500,7 +499,7 @@
   <div class="topbar">
     <div class="brand">
       <span class="dot"></span>
-      <span>ðŸš€ DevAgent Control Center</span>
+      <span>🚀 DevAgent Control Center</span>
       <span id="agentReady" class="status-pill">Agent Ready</span>
     </div>
     <div class="top-controls">
@@ -518,6 +517,8 @@
       </select>
       <select id="modelSelect"></select>
       <button id="refreshBtn">Refresh</button>
+      <button id="guideBtn">Guide</button>
+      <button id="acceptanceBtn">Run Acceptance</button>
       <button id="rotateBtn">Rotate Key</button>
       <button id="clearBtn">Clear</button>
     </div>
@@ -525,7 +526,7 @@
 
   <div class="command-box">
     <div class="command-shell">
-      <textarea id="prompt" placeholder="âœ¨ What do you want me to build or change?"></textarea>
+      <textarea id="prompt" placeholder="✨ What do you want me to build or change?"></textarea>
       <div class="command-actions">
         <button id="runBtn" class="btn-primary">Run Agent</button>
         <button id="chatBtn" class="btn-ghost">Ask Only</button>
@@ -537,7 +538,7 @@
   <div class="workspace">
     <aside class="panel">
       <div class="section">
-        <h3>ðŸ“ Project Explorer</h3>
+        <h3>📁 Project Explorer</h3>
         <div class="section-body">
           <input id="repo" class="small-input" value="." placeholder="Repo path" />
           <div class="chips"><span class="chip" id="projectPathChip">project: .</span></div>
@@ -549,7 +550,7 @@
       </div>
 
       <div class="section">
-        <h3>ðŸŒ¿ Git</h3>
+        <h3>🌿 Git</h3>
         <div class="section-body">
           <div id="gitBranch">Branch: -</div>
           <p style="margin:8px 0 6px;">Modified</p>
@@ -560,7 +561,7 @@
       </div>
 
       <div class="section">
-        <h3>ðŸ” Search / Dependencies / Tests / Quality</h3>
+        <h3>🔍 Search / Dependencies / Tests / Quality</h3>
         <div class="section-body">
           <div class="chips">
             <span class="chip">Search</span>
@@ -589,7 +590,7 @@
 
     <aside class="panel">
       <div class="section">
-        <h3>ðŸ¤– AI Agent</h3>
+        <h3>🤖 AI Agent</h3>
         <div class="section-body agent-status">
           <div><strong>Task:</strong> <span id="taskTitle">No active task</span></div>
           <div><strong>Status:</strong> <span id="agentState" class="badge b-info">Idle</span></div>
@@ -600,21 +601,21 @@
       </div>
 
       <div class="section">
-        <h3>ðŸ“‹ Plan</h3>
+        <h3>📋 Plan</h3>
         <div class="section-body">
           <ul id="planList" class="list"></ul>
         </div>
       </div>
 
       <div class="section">
-        <h3>âš¡ Agent Activity</h3>
+        <h3>⚡ Agent Activity</h3>
         <div class="section-body">
           <ul id="activityList" class="list"></ul>
         </div>
       </div>
 
       <div class="section">
-        <h3>âš  Approval Gate</h3>
+        <h3>⚠ Approval Gate</h3>
         <div class="section-body">
           <label style="display:flex;gap:8px;align-items:center; margin-bottom:8px;"><input id="approvalEnabled" type="checkbox" checked /> Require approval before execution</label>
           <div id="approvalBox" class="approval-box">
@@ -629,21 +630,46 @@
       </div>
 
       <div class="section">
-        <h3>ðŸ§­ Context</h3>
+        <h3>🔐 Destructive Approval Tokens</h3>
+        <div class="section-body">
+          <div class="grid-2">
+            <div>
+              <label>Action</label>
+              <select id="approvalAction" class="small-select">
+                <option value="delete_file">delete_file</option>
+                <option value="git_commit">git_commit</option>
+              </select>
+            </div>
+            <div>
+              <label>Request ID</label>
+              <input id="approvalRequestId" class="small-input" placeholder="paste request id" />
+            </div>
+          </div>
+          <div class="approval-actions" style="margin-top:8px;">
+            <button id="requestApprovalTokenBtn">Request</button>
+            <button id="approveTokenBtn">Approve</button>
+            <button id="refreshApprovalsBtn">Refresh</button>
+          </div>
+          <div id="approvalTokenOutput" style="margin-top:8px; white-space:pre-wrap; color:#d9e7ff;"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🧭 Context</h3>
         <div class="section-body">
           <div id="contextSummary">Loading context...</div>
         </div>
       </div>
 
       <div class="section">
-        <h3>ðŸ§  Integrated Models & Status</h3>
+        <h3>🧠 Integrated Models & Status</h3>
         <div class="section-body">
           <ul id="modelStatusList" class="list"></ul>
         </div>
       </div>
 
       <div class="section">
-        <h3>ðŸ›¡ Risk & Permissions</h3>
+        <h3>🛡 Risk & Permissions</h3>
         <div class="section-body">
           <ul id="riskList" class="list"></ul>
           <ul id="permissionList" class="list" style="margin-top:8px;"></ul>
@@ -651,7 +677,7 @@
       </div>
 
       <div class="section">
-        <h3>âš™ Run Settings</h3>
+        <h3>⚙ Run Settings</h3>
         <div class="section-body">
           <div class="grid-2">
             <div>
@@ -722,6 +748,8 @@
       <span class="tab" data-bottom-tab="logs">Logs</span>
       <span class="tab" data-bottom-tab="git">Git</span>
       <span class="tab" data-bottom-tab="trace">Agent Trace</span>
+      <span class="tab" data-bottom-tab="timeline">Tool Timeline</span>
+      <span class="tab" data-bottom-tab="validation">Validation</span>
       <span id="bottomSummary" style="margin-left:auto; color:#a8bcdd; font-size:12px;">Agent: 0%</span>
     </div>
     <div id="bottomContent" class="bottom-content">Ready.</div>
@@ -767,12 +795,13 @@
     pendingExecutionPayload: null,
     bootstrap: null,
     latestReport: '',
-    assistantReply: '',
     activity: [],
     terminal: '',
     tests: '',
     logs: '',
     trace: '',
+    timeline: '',
+    validation: '',
     gitPanel: '',
     diffStats: null,
   };
@@ -784,6 +813,8 @@
     runBtn: document.getElementById('runBtn'),
     chatBtn: document.getElementById('chatBtn'),
     refreshBtn: document.getElementById('refreshBtn'),
+    guideBtn: document.getElementById('guideBtn'),
+    acceptanceBtn: document.getElementById('acceptanceBtn'),
     clearBtn: document.getElementById('clearBtn'),
     rotateBtn: document.getElementById('rotateBtn'),
     modeSelect: document.getElementById('modeSelect'),
@@ -834,6 +865,12 @@
     closeReviewModalTop: document.getElementById('closeReviewModalTop'),
     closeReviewModalBottom: document.getElementById('closeReviewModalBottom'),
     modeChips: document.getElementById('modeChips'),
+    approvalAction: document.getElementById('approvalAction'),
+    approvalRequestId: document.getElementById('approvalRequestId'),
+    requestApprovalTokenBtn: document.getElementById('requestApprovalTokenBtn'),
+    approveTokenBtn: document.getElementById('approveTokenBtn'),
+    refreshApprovalsBtn: document.getElementById('refreshApprovalsBtn'),
+    approvalTokenOutput: document.getElementById('approvalTokenOutput'),
   };
 
   function nowStamp() {
@@ -898,11 +935,6 @@
       return;
     }
 
-    if (state.assistantReply) {
-      el.centerView.textContent = state.assistantReply;
-      return;
-    }
-
     el.centerView.textContent = state.latestReport
       ? 'Execution completed. Review report and diff tabs for details, then approve commit workflow if needed.'
       : 'Use Explain to get rationale after execution.';
@@ -914,22 +946,60 @@
     if (state.bottomTab === 'logs') el.bottomContent.textContent = state.logs || 'Execution logs will appear here.';
     if (state.bottomTab === 'git') el.bottomContent.textContent = state.gitPanel || 'Git summary will appear here.';
     if (state.bottomTab === 'trace') el.bottomContent.textContent = state.trace || 'Agent trace will appear here.';
+    if (state.bottomTab === 'timeline') el.bottomContent.textContent = state.timeline || 'Tool execution timeline will appear here.';
+    if (state.bottomTab === 'validation') el.bottomContent.textContent = state.validation || 'Validation stage output will appear here.';
+  }
+
+  function renderToolTimeline(toolResults) {
+    if (!toolResults || !toolResults.length) {
+      state.timeline = 'No tool results captured in this step.';
+      renderBottom();
+      return;
+    }
+    state.timeline = toolResults.map((item, index) => {
+      const op = item.operation || 'unknown';
+      const status = item.success ? 'SUCCESS' : 'FAIL';
+      const line = `${String(index + 1).padStart(2, '0')}. [${status}] ${op}`;
+      const detail = item.error ? `   error: ${item.error}` : '';
+      return `${line}${detail ? `\n${detail}` : ''}`;
+    }).join('\n');
+    renderBottom();
+  }
+
+  function renderValidationFromState(agentState) {
+    if (!agentState) {
+      state.validation = 'No validation state available.';
+      renderBottom();
+      return;
+    }
+    const tests = agentState.tests_run || [];
+    if (!tests.length) {
+      state.validation = `Status: ${agentState.status || 'unknown'}\nNo tests recorded in this step.`;
+      renderBottom();
+      return;
+    }
+    state.validation = tests.map((item, index) => {
+      const cmd = item.command || 'unknown';
+      const status = item.success ? 'PASS' : 'FAIL';
+      return `${index + 1}. [${status}] ${cmd} (exit=${item.exit_code})`;
+    }).join('\n');
+    renderBottom();
   }
 
   function renderModes() {
     const chips = [
-      'ðŸ” Analyze', 'ðŸ’» Code', 'ðŸ› Debug', 'ðŸ§ª Test', 'ðŸ”„ Refactor', 'ðŸ— Architect'
+      '🔍 Analyze', '💻 Code', '🐛 Debug', '🧪 Test', '🔄 Refactor', '🏗 Architect'
     ];
     el.modeChips.innerHTML = chips.map(item => `<span class="chip">${item}</span>`).join('');
   }
 
   async function bootstrapUi() {
     const repo = el.repo.value.trim() || '.';
-    pushActivity('ðŸ§  Loading workspace context');
+    pushActivity('🧠 Loading workspace context');
     const response = await fetch(`/api/ui/bootstrap?repo=${encodeURIComponent(repo)}`);
     const data = await response.json();
     if (!data.ok) {
-      pushActivity('âŒ Failed to load bootstrap data');
+      pushActivity('❌ Failed to load bootstrap data');
       return;
     }
 
@@ -949,12 +1019,12 @@
   }
 
   function renderExplorer(explorer) {
-    el.folderTree.innerHTML = (explorer.folders || []).map(item => `<li>ðŸ“ ${escapeHtml(item)}</li>`).join('') || '<li>No folders</li>';
-    el.fileTree.innerHTML = (explorer.files || []).slice(0, 20).map(item => `<li>ðŸ“„ ${escapeHtml(item)}</li>`).join('') || '<li>No files</li>';
+    el.folderTree.innerHTML = (explorer.folders || []).map(item => `<li>📁 ${escapeHtml(item)}</li>`).join('') || '<li>No folders</li>';
+    el.fileTree.innerHTML = (explorer.files || []).slice(0, 20).map(item => `<li>📄 ${escapeHtml(item)}</li>`).join('') || '<li>No files</li>';
     el.activeFileTitle.textContent = explorer.selected || 'No file selected';
     const totals = state.diffStats?.totals;
     if (state.diffStats?.available && totals) {
-      el.changesSummary.textContent = `Î” ${totals.files} files | +${totals.added_lines} / -${totals.deleted_lines}`;
+      el.changesSummary.textContent = `Δ ${totals.files} files | +${totals.added_lines} / -${totals.deleted_lines}`;
     } else {
       el.changesSummary.textContent = `Files indexed: ${explorer.file_count || 0}`;
     }
@@ -1102,7 +1172,7 @@
     el.approvalBox.style.display = 'block';
     el.reviewChangesBtn.disabled = !(state.diffStats?.available && (state.diffStats?.files || []).length > 0);
     setAgentState('Waiting Approval', 'b-warn');
-    pushActivity('ðŸ‘¤ Waiting for approval');
+    pushActivity('👤 Waiting for approval');
   }
 
   function sortedDiffFiles() {
@@ -1155,12 +1225,12 @@
     el.currentAction.textContent = 'Analyzing task';
     el.actionReason.textContent = 'User goal accepted, building plan and dispatching run';
     renderPlan([
-      'âœ“ Analyze request',
-      'âœ“ Inspect repository context',
-      'â†’ Prepare execution',
-      'â—‹ Run workflow',
-      'â—‹ Collect results',
-      'â—‹ Review changes',
+      '✓ Analyze request',
+      '✓ Inspect repository context',
+      '→ Prepare execution',
+      '○ Run workflow',
+      '○ Collect results',
+      '○ Review changes',
     ]);
 
     try {
@@ -1189,6 +1259,9 @@
       const integrationNote = data.integration_note ? `\nIntegration: ${data.integration_note}` : '';
       state.logs = `${state.logs}\nAssistant: ${reply}${integrationNote}`.trim();
       state.trace = `${state.trace}\n${nowStamp()}  Task dispatched: ${payload.mode}`.trim();
+      (data.activity || []).forEach(item => pushActivity(`ℹ️ ${item}`));
+      renderToolTimeline(data.tool_results || []);
+      renderValidationFromState(data.state || null);
       renderBottom();
 
       if (!state.jobId) {
@@ -1237,7 +1310,7 @@
       setProgress(job.progress || 0);
       el.currentAction.textContent = job.message || 'Running';
       el.actionReason.textContent = `Job status: ${job.status}`;
-      pushActivity(`âš¡ ${job.message || job.status}`);
+      pushActivity(`⚡ ${job.message || job.status}`);
 
       const details = (job.details || []).join('\n');
       state.trace = details || state.trace;
@@ -1250,12 +1323,12 @@
         setAgentState('Completed', 'b-ok');
         setProgress(100);
         renderPlan([
-          'âœ“ Analyze request',
-          'âœ“ Inspect repository context',
-          'âœ“ Prepare execution',
-          'âœ“ Run workflow',
-          'âœ“ Collect results',
-          'âœ“ Review changes',
+          '✓ Analyze request',
+          '✓ Inspect repository context',
+          '✓ Prepare execution',
+          '✓ Run workflow',
+          '✓ Collect results',
+          '✓ Review changes',
         ]);
 
         const report = job.result?.report || 'Execution completed.';
@@ -1266,7 +1339,7 @@
         state.tests = testLines.join('\n') || 'No explicit test output in report.';
         state.logs = `${state.logs}\nExecution completed.`.trim();
 
-        pushActivity('âœ… Execution completed');
+        pushActivity('✅ Execution completed');
         bootstrapUi();
       }
 
@@ -1275,7 +1348,7 @@
         setAgentState('Failed', 'b-err');
         setProgress(100);
         state.logs = `${state.logs}\n${job.error || 'Job failed'}`.trim();
-        pushActivity(`âŒ ${job.error || 'Job failed'}`);
+        pushActivity(`❌ ${job.error || 'Job failed'}`);
         renderBottom();
       }
     }
@@ -1310,17 +1383,109 @@
     el.taskTitle.textContent = 'No active task';
     el.currentAction.textContent = 'Waiting';
     el.actionReason.textContent = 'Awaiting user command';
-    renderPlan(['â—‹ Analyze error', 'â—‹ Inspect code', 'â—‹ Modify files', 'â—‹ Run tests', 'â—‹ Review changes']);
+    renderPlan(['○ Analyze error', '○ Inspect code', '○ Modify files', '○ Run tests', '○ Review changes']);
   }
 
   async function rotateKey() {
     const response = await fetch('/api/rotate-key', { method: 'POST' });
     const data = await response.json();
     if (data.ok) {
-      pushActivity(`ðŸ” Key rotated: ${data.rotation.new_key_id}`);
+      pushActivity(`🔐 Key rotated: ${data.rotation.new_key_id}`);
       state.logs = `${state.logs}\nKey rotated: ${data.rotation.new_key_id}`.trim();
       renderBottom();
     }
+  }
+
+  async function runAcceptanceOneClick() {
+    try {
+      el.acceptanceBtn.disabled = true;
+      el.acceptanceBtn.textContent = 'Running...';
+      setAgentState('Working', 'b-info');
+      pushActivity('🧪 Running acceptance scenarios (1-8)');
+      const response = await fetch('/api/acceptance/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ execute: true }),
+      });
+      const data = await response.json();
+      if (!data.ok) {
+        throw new Error(data.error || 'Acceptance run failed');
+      }
+      pushActivity('✅ Acceptance scenarios completed');
+      state.logs = `${state.logs}\nAcceptance report generated: ${data.report_path}`.trim();
+      state.bottomTab = 'logs';
+      renderBottom();
+      if (data.report_url) {
+        window.open(data.report_url, '_blank', 'noopener');
+      }
+      setAgentState('Ready', 'b-ok');
+    } catch (error) {
+      const message = error && error.message ? error.message : 'Acceptance run failed';
+      pushActivity(`❌ ${message}`);
+      state.logs = `${state.logs}\n${message}`.trim();
+      renderBottom();
+      setAgentState('Failed', 'b-err');
+    } finally {
+      el.acceptanceBtn.disabled = false;
+      el.acceptanceBtn.textContent = 'Run Acceptance';
+    }
+  }
+
+  async function requestApprovalToken() {
+    const action = el.approvalAction.value;
+    const response = await fetch('/api/approvals/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, details: `Requested from UI at ${nowStamp()}` }),
+    });
+    const data = await response.json();
+    if (!data.ok) {
+      el.approvalTokenOutput.textContent = `Request failed: ${data.error || 'unknown error'}`;
+      return;
+    }
+    const requestId = data.result?.request_id || '';
+    el.approvalRequestId.value = requestId;
+    el.approvalTokenOutput.textContent = `Approval requested for ${action}\nrequest_id: ${requestId}\nexpires_at: ${data.result?.expires_at || '-'}`;
+    pushActivity(`📝 Approval requested (${action})`);
+  }
+
+  async function approveToken() {
+    const requestId = (el.approvalRequestId.value || '').trim();
+    if (!requestId) {
+      el.approvalTokenOutput.textContent = 'Please provide request id.';
+      return;
+    }
+    const response = await fetch('/api/approvals/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: requestId }),
+    });
+    const data = await response.json();
+    if (!data.ok) {
+      el.approvalTokenOutput.textContent = `Approve failed: ${data.result?.error || data.error || 'unknown error'}`;
+      return;
+    }
+    const token = data.result?.approval_token || '';
+    el.approvalTokenOutput.textContent = `Approved request ${requestId}\napproval_token:\n${token}\n(use in destructive tool args)`;
+    pushActivity(`✅ Approval token issued (${requestId})`);
+  }
+
+  async function refreshApprovals() {
+    const response = await fetch('/api/approvals');
+    const data = await response.json();
+    if (!data.ok) {
+      el.approvalTokenOutput.textContent = 'Unable to load approvals.';
+      return;
+    }
+    const rows = data.result?.requests || [];
+    if (!rows.length) {
+      el.approvalTokenOutput.textContent = 'No approval requests yet.';
+      return;
+    }
+    el.approvalTokenOutput.textContent = rows.slice(0, 8).map(item => {
+      const status = item.used ? 'used' : (item.approved ? 'approved' : (item.expired ? 'expired' : 'pending'));
+      return `${item.request_id} | ${item.action} | ${status}`;
+    }).join('\n');
   }
 
   function bindEvents() {
@@ -1335,8 +1500,13 @@
     el.runBtn.addEventListener('click', () => send(!!el.executeOnSend.checked));
     el.chatBtn.addEventListener('click', () => send(false));
     el.refreshBtn.addEventListener('click', bootstrapUi);
+    el.guideBtn.addEventListener('click', () => window.open('/guide', '_blank', 'noopener'));
+    el.acceptanceBtn.addEventListener('click', runAcceptanceOneClick);
     el.clearBtn.addEventListener('click', clearUi);
     el.rotateBtn.addEventListener('click', rotateKey);
+    el.requestApprovalTokenBtn.addEventListener('click', requestApprovalToken);
+    el.approveTokenBtn.addEventListener('click', approveToken);
+    el.refreshApprovalsBtn.addEventListener('click', refreshApprovals);
 
     el.repo.addEventListener('change', bootstrapUi);
     el.modeSelect.addEventListener('change', () => {
@@ -1359,7 +1529,7 @@
       el.approvalBox.style.display = 'none';
       closeReviewModal();
       if (!payload) return;
-      pushActivity('âœ… Execution approved');
+      pushActivity('✅ Execution approved');
       await executePayload(payload);
       el.prompt.value = '';
     });
@@ -1369,7 +1539,7 @@
       el.approvalBox.style.display = 'none';
       closeReviewModal();
       setAgentState('Blocked', 'b-warn');
-      pushActivity('â›” Execution rejected by user');
+      pushActivity('⛔ Execution rejected by user');
     });
 
     el.reviewChangesBtn.addEventListener('click', openReviewModal);
@@ -1391,6 +1561,7 @@
     renderModes();
     clearUi();
     await bootstrapUi();
+    await refreshApprovals();
     renderBottom();
   }
 
@@ -1398,8 +1569,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-

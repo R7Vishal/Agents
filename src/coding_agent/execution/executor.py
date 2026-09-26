@@ -7,6 +7,7 @@ from typing import Any, Callable
 from ..models import FailureType, TaskExecutionResult, TaskGraph, TaskStatus
 from .command_runner import SandboxPolicy, run_command
 from .repair import classify_failure
+from .repair_strategies import apply_repair_proposal, build_repair_proposals
 from .task_graph import all_done, get_ready_tasks
 
 
@@ -175,6 +176,31 @@ def _attempt_repair(
     timed_out: bool,
 ) -> FailureType | None:
     failure_type = classify_failure(failed_output, timed_out=timed_out, command=failed_command)
+
+    proposals = build_repair_proposals(repo_path=repo_path, failed_output=failed_output, failed_command=failed_command)
+    for proposal in proposals:
+        if apply_repair_proposal(repo_path=repo_path, proposal=proposal):
+            retry_result = run_command(task.command, repo_path=repo_path, policy=sandbox_policy)
+            if retry_result.exit_code == 0:
+                return None
+            failure_type = classify_failure(
+                retry_result.output,
+                timed_out=retry_result.timed_out,
+                command=task.command,
+            )
+
+        for proposal_command in proposal.commands:
+            proposal_result = run_command(proposal_command, repo_path=repo_path, policy=sandbox_policy)
+            if proposal_result.exit_code != 0:
+                continue
+            retry_result = run_command(task.command, repo_path=repo_path, policy=sandbox_policy)
+            if retry_result.exit_code == 0:
+                return None
+            failure_type = classify_failure(
+                retry_result.output,
+                timed_out=retry_result.timed_out,
+                command=task.command,
+            )
 
     while task.repair_attempts < max_repair_attempts_per_task:
         if not task.repair_commands:

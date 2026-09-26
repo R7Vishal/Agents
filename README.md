@@ -295,3 +295,103 @@ Architecture references:
 - `LAYERED_AGENT_ARCHITECTURE.md` (12-layer integration model mapped to current code)
 - `TECHNICAL_IMPLEMENTATION_DOCUMENT.md` (full implementation detail)
 - `LOCAL_MODEL_ROUTING_STRATEGY.md` (hardware-aware model routing abstraction)
+
+## End-to-end coding agent capabilities
+
+The agent now supports dynamic, workspace-aware execution with structured tools:
+
+- File operations: read, create, write, edit, delete, rename, list, search files, search text
+- Execution: run controlled commands and auto-detect test commands
+- Git: status, diff, log, branch list/create, checkout, add, commit (approval-gated)
+- Diagnostics: dynamic `/tools`, `/capabilities`, `/status`, `/doctor`
+- Advisor: natural-language self-improvement analysis (`How can I improve you?`)
+- State: structured execution state returned in chat responses for UI rendering
+
+## Architecture (incremental)
+
+```mermaid
+graph TD
+	UI[Flask UI/API\nweb_app.py] --> Chat[Chat Service\nchat_service.py]
+	Chat --> Registry[Tool Registry\ntools/registry.py]
+	Registry --> WS[Workspace Manager\nworkspace_manager.py]
+	Registry --> Cmd[Command/Git/Test Tools\ntools/builders.py]
+	Chat --> Caps[Capability Manager\ntools/capabilities.py]
+	Chat --> Doctor[Agent Doctor\ntools/doctor.py]
+	Chat --> Advisor[Improvement Advisor\ntools/advisor.py]
+	Chat --> ExecState[Execution State Store\nexecution_state.py]
+	UI --> Orchestrator[Controlled Plan Orchestrator\norchestration/agent.py]
+```
+
+## Tool architecture
+
+- `ToolRegistry`: centralized registration and execution contract
+- `ToolDefinition`: name, description, parameters, safety, execution callback
+- `register_default_tools(...)`: mounts filesystem, execution, test, and git tools
+- `CapabilityManager`: computes capabilities from actually-registered tools
+- `AgentDoctor`: reports health from real runtime/tooling availability
+
+## Workspace security model
+
+- Security boundary is workspace path, not file extension
+- `WorkspaceManager` enforces normalized, traversal-safe path resolution
+- Operations outside workspace are blocked with explicit errors
+- Command safety policy blocks known-dangerous commands and enforces allowlist
+- Destructive operations require explicit approval inputs
+
+## Execution modes
+
+Configured through environment variable `CODING_AGENT_EXECUTION_MODE`:
+
+- `safe`: read/search by default; write actions require approval flags
+- `auto` (default): create/modify and test workflows enabled with safety checks
+- `full`: broader autonomy; destructive actions still require explicit confirmation
+
+## Supported workflows
+
+- Conversational request understanding + workspace inspection
+- Dynamic planning/activity output in chat (`activity`, `tool_results`, `state`)
+- End-to-end file creation/modification + execution when request implies action
+- Git change inspection from natural language (`Show me what changed in Git`)
+
+## How to add a new tool
+
+1. Implement executor function returning structured dict result
+2. Register via `ToolRegistry.register(ToolDefinition(...))`
+3. Add capability mapping in `CapabilityManager` if needed
+4. Add tests in `tests/` for success and safety failure paths
+
+## How to add a new capability
+
+1. Add/compose tools that implement the capability
+2. Update `CapabilityManager` section mapping
+3. Extend `/doctor` checks if it affects health reporting
+4. Add endpoint/chat tests validating runtime discoverability
+
+## How to run tests
+
+```powershell
+python -m pytest -q
+```
+
+## Example conversations
+
+- `What can you do?`
+- `/tools`
+- `/doctor`
+- `Show me the project structure`
+- `Find where authentication is implemented`
+- `Create a file called hello.md containing a short description of this project.`
+- `Create a Python file called hello.py that prints Hello World.`
+- `Modify hello.py to accept a name.`
+- `Show me what changed in Git.`
+
+## Latest architecture and implementation updates (2026-09-26)
+
+- Added secure workspace filesystem manager for path-bounded file operations.
+- Added centralized tool registry and dynamic capability/doctor/advisor features.
+- Added approval-token workflow for destructive actions (`delete_file`, `git_commit`).
+- Added persistent semantic index with rebuild API and indexed semantic search.
+- Added optional provider-backed LLM integration path with telemetry auditing.
+- Added deeper repair strategies (multi-file init patch + retry proposals).
+- Added guide page (`/guide`) and one-click acceptance execution (`/api/acceptance/run`).
+- Added Copilot-parity benchmark automation report script.

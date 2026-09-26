@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 import io
 import subprocess
+import sys
 import threading
 import uuid
 import zipfile
@@ -18,26 +19,26 @@ from .chat_service import CopilotChatService
 
 
 def create_app() -> Flask:
-    app = Flask(
-    __name__,
-    template_folder="../templates",
-    static_folder="../static",
-    static_url_path="/static",
-)
+    app = Flask(__name__, template_folder="../templates")
     project_root = Path(__file__).resolve().parents[3]
     runtime = build_default_runtime(project_root)
     agent: CodingAgent = runtime.orchestrator
-    chat_service = CopilotChatService(
-    llm_gateway=runtime.llm_gateway,
-    model_router=runtime.model_router,
-)
+    chat_service: CopilotChatService = runtime.chat_service
     model_router: ModelRouter = runtime.model_router
+    tool_registry = runtime.tool_registry
+    approval_tokens = runtime.approval_tokens
+    capability_manager = runtime.capability_manager
+    doctor = runtime.doctor
     jobs: dict[str, dict[str, Any]] = {}
     jobs_lock = threading.Lock()
 
     @app.get("/")
     def index():
         return render_template("index.html")
+
+    @app.get("/guide")
+    def guide_page():
+        return render_template("guide.html")
 
     @app.get("/api/project-info")
     def project_info():
@@ -63,6 +64,7 @@ def create_app() -> Flask:
                 "ok": True,
                 "project_root": str(project_root),
                 "repo_path": str(repo_path),
+                "execution_mode": runtime.execution_mode,
                 "models": models,
                 "explorer": explorer,
                 "git": git_status,
@@ -76,6 +78,114 @@ def create_app() -> Flask:
         repo_path = _resolve_repo_path(repo)
         diff_stats = _git_diff_stats(repo_path)
         return jsonify({"ok": True, "repo_path": str(repo_path), "diff_stats": diff_stats})
+
+    @app.get("/api/tools")
+    def api_tools():
+        return jsonify({"ok": True, "tools": tool_registry.list_tools()})
+
+    @app.get("/api/capabilities")
+    def api_capabilities():
+        return jsonify({"ok": True, "capabilities": capability_manager.as_dict()})
+
+    @app.get("/api/doctor")
+    def api_doctor():
+        report = doctor.report()
+        return jsonify({"ok": True, "doctor": report, "summary": doctor.render_markdown()})
+
+    @app.get("/api/status")
+    def api_status():
+        return jsonify(
+            {
+                "ok": True,
+                "project_root": str(project_root),
+                "tool_count": len(tool_registry.list_tools()),
+                "execution_mode": runtime.execution_mode,
+                "capabilities": capability_manager.as_dict(),
+                "llm_telemetry": [asdict(item) for item in runtime.llm_gateway.audit_events()][-20:],
+            }
+        )
+
+    @app.post("/api/index/rebuild")
+    def api_index_rebuild():
+        result = runtime.code_search.rebuild_semantic_index()
+        return jsonify({"ok": bool(result.get("success", False)), "result": result})
+
+    @app.get("/api/reasoning/telemetry")
+    def api_reasoning_telemetry():
+        events = [asdict(item) for item in runtime.llm_gateway.audit_events()]
+        return jsonify({"ok": True, "count": len(events), "events": events[-200:]})
+
+    @app.post("/api/approvals/request")
+    def api_approval_request():
+        payload = request.get_json(silent=True) or {}
+        action = str(payload.get("action", "")).strip()
+        details = str(payload.get("details", "")).strip()
+        if not action:
+            return jsonify({"ok": False, "error": "action is required"}), 400
+        result = approval_tokens.request(action=action, details=details)
+        return jsonify({"ok": True, "result": result})
+
+    @app.post("/api/approvals/approve")
+    def api_approval_approve():
+        payload = request.get_json(silent=True) or {}
+        request_id = str(payload.get("request_id", "")).strip()
+        if not request_id:
+            return jsonify({"ok": False, "error": "request_id is required"}), 400
+        result = approval_tokens.approve(request_id=request_id)
+        status = 200 if result.get("success") else 400
+        return jsonify({"ok": bool(result.get("success", False)), "result": result}), status
+
+    @app.get("/api/approvals")
+    def api_approval_list():
+        result = approval_tokens.list_requests()
+        return jsonify({"ok": True, "result": result})
+
+    @app.post("/api/acceptance/run")
+    def api_acceptance_run():
+        payload = request.get_json(silent=True) or {}
+        execute = bool(payload.get("execute", True))
+        script_path = project_root / "scripts" / "run_acceptance_scenarios.py"
+        report_path = project_root / "reports" / "acceptance-scenarios-report.md"
+
+        if not script_path.exists():
+            return jsonify({"ok": False, "error": f"Script not found: {script_path}"}), 404
+
+        if execute:
+            proc = subprocess.run(
+                [sys.executable, str(script_path)],
+                cwd=project_root,
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+            if proc.returncode != 0:
+                return jsonify(
+                    {
+                        "ok": False,
+                        "error": "Acceptance scenarios failed",
+                        "exit_code": proc.returncode,
+                        "stdout": proc.stdout,
+                        "stderr": proc.stderr,
+                    }
+                ), 500
+
+        return jsonify(
+            {
+                "ok": True,
+                "executed": execute,
+                "script": str(script_path),
+                "report_path": str(report_path),
+                "report_exists": report_path.exists(),
+                "report_url": "/api/acceptance/report",
+            }
+        )
+
+    @app.get("/api/acceptance/report")
+    def api_acceptance_report():
+        report_path = project_root / "reports" / "acceptance-scenarios-report.md"
+        if not report_path.exists():
+            return jsonify({"ok": False, "error": "Acceptance report not found. Run acceptance first."}), 404
+        return send_file(report_path, mimetype="text/markdown", as_attachment=False)
 
     @app.get("/api/download-project")
     def download_project():
@@ -602,6 +712,9 @@ def create_app() -> Flask:
             "session_id": chat_result["session_id"],
             "reply": chat_result["reply"],
             "message_count": chat_result["message_count"],
+            "activity": chat_result.get("activity", []),
+            "tool_results": chat_result.get("tool_results", []),
+            "state": chat_result.get("state", {}),
             "action": action,
             "integration_note": integration_status["message"],
         }

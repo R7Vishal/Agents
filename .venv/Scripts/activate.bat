@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\AI\Agents\.venv
+set VIRTUAL_ENV=C:\Users\6522648\Downloads\PCC_Code_Base\coding-agent\.venv
 
 if not defined PROMPT set PROMPT=$P$G
 
