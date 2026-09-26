@@ -1,8 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
   <title>DevAgent Workspace</title>
   <style>
     :root {
@@ -499,7 +500,7 @@
   <div class="topbar">
     <div class="brand">
       <span class="dot"></span>
-      <span>🚀 DevAgent Control Center</span>
+      <span>ðŸš€ DevAgent Control Center</span>
       <span id="agentReady" class="status-pill">Agent Ready</span>
     </div>
     <div class="top-controls">
@@ -524,7 +525,7 @@
 
   <div class="command-box">
     <div class="command-shell">
-      <textarea id="prompt" placeholder="✨ What do you want me to build or change?"></textarea>
+      <textarea id="prompt" placeholder="âœ¨ What do you want me to build or change?"></textarea>
       <div class="command-actions">
         <button id="runBtn" class="btn-primary">Run Agent</button>
         <button id="chatBtn" class="btn-ghost">Ask Only</button>
@@ -536,7 +537,7 @@
   <div class="workspace">
     <aside class="panel">
       <div class="section">
-        <h3>📁 Project Explorer</h3>
+        <h3>ðŸ“ Project Explorer</h3>
         <div class="section-body">
           <input id="repo" class="small-input" value="." placeholder="Repo path" />
           <div class="chips"><span class="chip" id="projectPathChip">project: .</span></div>
@@ -548,7 +549,7 @@
       </div>
 
       <div class="section">
-        <h3>🌿 Git</h3>
+        <h3>ðŸŒ¿ Git</h3>
         <div class="section-body">
           <div id="gitBranch">Branch: -</div>
           <p style="margin:8px 0 6px;">Modified</p>
@@ -559,7 +560,7 @@
       </div>
 
       <div class="section">
-        <h3>🔍 Search / Dependencies / Tests / Quality</h3>
+        <h3>ðŸ” Search / Dependencies / Tests / Quality</h3>
         <div class="section-body">
           <div class="chips">
             <span class="chip">Search</span>
@@ -588,7 +589,7 @@
 
     <aside class="panel">
       <div class="section">
-        <h3>🤖 AI Agent</h3>
+        <h3>ðŸ¤– AI Agent</h3>
         <div class="section-body agent-status">
           <div><strong>Task:</strong> <span id="taskTitle">No active task</span></div>
           <div><strong>Status:</strong> <span id="agentState" class="badge b-info">Idle</span></div>
@@ -599,21 +600,21 @@
       </div>
 
       <div class="section">
-        <h3>📋 Plan</h3>
+        <h3>ðŸ“‹ Plan</h3>
         <div class="section-body">
           <ul id="planList" class="list"></ul>
         </div>
       </div>
 
       <div class="section">
-        <h3>⚡ Agent Activity</h3>
+        <h3>âš¡ Agent Activity</h3>
         <div class="section-body">
           <ul id="activityList" class="list"></ul>
         </div>
       </div>
 
       <div class="section">
-        <h3>⚠ Approval Gate</h3>
+        <h3>âš  Approval Gate</h3>
         <div class="section-body">
           <label style="display:flex;gap:8px;align-items:center; margin-bottom:8px;"><input id="approvalEnabled" type="checkbox" checked /> Require approval before execution</label>
           <div id="approvalBox" class="approval-box">
@@ -628,21 +629,21 @@
       </div>
 
       <div class="section">
-        <h3>🧭 Context</h3>
+        <h3>ðŸ§­ Context</h3>
         <div class="section-body">
           <div id="contextSummary">Loading context...</div>
         </div>
       </div>
 
       <div class="section">
-        <h3>🧠 Integrated Models & Status</h3>
+        <h3>ðŸ§  Integrated Models & Status</h3>
         <div class="section-body">
           <ul id="modelStatusList" class="list"></ul>
         </div>
       </div>
 
       <div class="section">
-        <h3>🛡 Risk & Permissions</h3>
+        <h3>ðŸ›¡ Risk & Permissions</h3>
         <div class="section-body">
           <ul id="riskList" class="list"></ul>
           <ul id="permissionList" class="list" style="margin-top:8px;"></ul>
@@ -650,7 +651,7 @@
       </div>
 
       <div class="section">
-        <h3>⚙ Run Settings</h3>
+        <h3>âš™ Run Settings</h3>
         <div class="section-body">
           <div class="grid-2">
             <div>
@@ -766,6 +767,7 @@
     pendingExecutionPayload: null,
     bootstrap: null,
     latestReport: '',
+    assistantReply: '',
     activity: [],
     terminal: '',
     tests: '',
@@ -896,6 +898,11 @@
       return;
     }
 
+    if (state.assistantReply) {
+      el.centerView.textContent = state.assistantReply;
+      return;
+    }
+
     el.centerView.textContent = state.latestReport
       ? 'Execution completed. Review report and diff tabs for details, then approve commit workflow if needed.'
       : 'Use Explain to get rationale after execution.';
@@ -911,18 +918,18 @@
 
   function renderModes() {
     const chips = [
-      '🔍 Analyze', '💻 Code', '🐛 Debug', '🧪 Test', '🔄 Refactor', '🏗 Architect'
+      'ðŸ” Analyze', 'ðŸ’» Code', 'ðŸ› Debug', 'ðŸ§ª Test', 'ðŸ”„ Refactor', 'ðŸ— Architect'
     ];
     el.modeChips.innerHTML = chips.map(item => `<span class="chip">${item}</span>`).join('');
   }
 
   async function bootstrapUi() {
     const repo = el.repo.value.trim() || '.';
-    pushActivity('🧠 Loading workspace context');
+    pushActivity('ðŸ§  Loading workspace context');
     const response = await fetch(`/api/ui/bootstrap?repo=${encodeURIComponent(repo)}`);
     const data = await response.json();
     if (!data.ok) {
-      pushActivity('❌ Failed to load bootstrap data');
+      pushActivity('âŒ Failed to load bootstrap data');
       return;
     }
 
@@ -935,16 +942,16 @@
     renderContext(data.explorer, data.models);
     renderRisk(data.risk);
     setAgentState('Ready', 'b-ok');
-    pushActivity('✅ Workspace context loaded');
+    pushActivity('âœ… Workspace context loaded');
   }
 
   function renderExplorer(explorer) {
-    el.folderTree.innerHTML = (explorer.folders || []).map(item => `<li>📁 ${escapeHtml(item)}</li>`).join('') || '<li>No folders</li>';
-    el.fileTree.innerHTML = (explorer.files || []).slice(0, 20).map(item => `<li>📄 ${escapeHtml(item)}</li>`).join('') || '<li>No files</li>';
+    el.folderTree.innerHTML = (explorer.folders || []).map(item => `<li>ðŸ“ ${escapeHtml(item)}</li>`).join('') || '<li>No folders</li>';
+    el.fileTree.innerHTML = (explorer.files || []).slice(0, 20).map(item => `<li>ðŸ“„ ${escapeHtml(item)}</li>`).join('') || '<li>No files</li>';
     el.activeFileTitle.textContent = explorer.selected || 'No file selected';
     const totals = state.diffStats?.totals;
     if (state.diffStats?.available && totals) {
-      el.changesSummary.textContent = `Δ ${totals.files} files | +${totals.added_lines} / -${totals.deleted_lines}`;
+      el.changesSummary.textContent = `Î” ${totals.files} files | +${totals.added_lines} / -${totals.deleted_lines}`;
     } else {
       el.changesSummary.textContent = `Files indexed: ${explorer.file_count || 0}`;
     }
@@ -1086,7 +1093,7 @@
     el.approvalBox.style.display = 'block';
     el.reviewChangesBtn.disabled = !(state.diffStats?.available && (state.diffStats?.files || []).length > 0);
     setAgentState('Waiting Approval', 'b-warn');
-    pushActivity('👤 Waiting for approval');
+    pushActivity('ðŸ‘¤ Waiting for approval');
   }
 
   function sortedDiffFiles() {
@@ -1139,12 +1146,12 @@
     el.currentAction.textContent = 'Analyzing task';
     el.actionReason.textContent = 'User goal accepted, building plan and dispatching run';
     renderPlan([
-      '✓ Analyze request',
-      '✓ Inspect repository context',
-      '→ Prepare execution',
-      '○ Run workflow',
-      '○ Collect results',
-      '○ Review changes',
+      'âœ“ Analyze request',
+      'âœ“ Inspect repository context',
+      'â†’ Prepare execution',
+      'â—‹ Run workflow',
+      'â—‹ Collect results',
+      'â—‹ Review changes',
     ]);
 
     const response = await fetch('/api/chat', {
@@ -1156,7 +1163,7 @@
 
     if (!data.ok) {
       setAgentState('Failed', 'b-err');
-      pushActivity(`❌ ${data.error || 'Execution failed'}`);
+      pushActivity(`âŒ ${data.error || 'Execution failed'}`);
       state.logs = `${state.logs}\n${data.error || 'Execution failed'}`.trim();
       renderBottom();
       return;
@@ -1164,12 +1171,14 @@
 
     state.sessionId = data.session_id || state.sessionId;
     state.jobId = data.job_id || null;
-    pushActivity('🧠 Task received');
-    pushActivity('🔍 Searching project and preparing execution');
+    pushActivity('ðŸ§  Task received');
+    pushActivity('ðŸ” Searching project and preparing execution');
 
     const reply = data.reply || 'No assistant reply';
+    state.assistantReply = reply;
     state.logs = `${state.logs}\nAssistant: ${reply}`.trim();
     state.trace = `${state.trace}\n${nowStamp()}  Task dispatched: ${payload.mode}`.trim();
+    renderCenter();
     renderBottom();
 
     if (state.jobId) pollJob(state.jobId);
@@ -1187,7 +1196,7 @@
       setProgress(job.progress || 0);
       el.currentAction.textContent = job.message || 'Running';
       el.actionReason.textContent = `Job status: ${job.status}`;
-      pushActivity(`⚡ ${job.message || job.status}`);
+      pushActivity(`âš¡ ${job.message || job.status}`);
 
       const details = (job.details || []).join('\n');
       state.trace = details || state.trace;
@@ -1200,12 +1209,12 @@
         setAgentState('Completed', 'b-ok');
         setProgress(100);
         renderPlan([
-          '✓ Analyze request',
-          '✓ Inspect repository context',
-          '✓ Prepare execution',
-          '✓ Run workflow',
-          '✓ Collect results',
-          '✓ Review changes',
+          'âœ“ Analyze request',
+          'âœ“ Inspect repository context',
+          'âœ“ Prepare execution',
+          'âœ“ Run workflow',
+          'âœ“ Collect results',
+          'âœ“ Review changes',
         ]);
 
         const report = job.result?.report || 'Execution completed.';
@@ -1216,7 +1225,7 @@
         state.tests = testLines.join('\n') || 'No explicit test output in report.';
         state.logs = `${state.logs}\nExecution completed.`.trim();
 
-        pushActivity('✅ Execution completed');
+        pushActivity('âœ… Execution completed');
         bootstrapUi();
       }
 
@@ -1225,7 +1234,7 @@
         setAgentState('Failed', 'b-err');
         setProgress(100);
         state.logs = `${state.logs}\n${job.error || 'Job failed'}`.trim();
-        pushActivity(`❌ ${job.error || 'Job failed'}`);
+        pushActivity(`âŒ ${job.error || 'Job failed'}`);
         renderBottom();
       }
     }
@@ -1260,14 +1269,14 @@
     el.taskTitle.textContent = 'No active task';
     el.currentAction.textContent = 'Waiting';
     el.actionReason.textContent = 'Awaiting user command';
-    renderPlan(['○ Analyze error', '○ Inspect code', '○ Modify files', '○ Run tests', '○ Review changes']);
+    renderPlan(['â—‹ Analyze error', 'â—‹ Inspect code', 'â—‹ Modify files', 'â—‹ Run tests', 'â—‹ Review changes']);
   }
 
   async function rotateKey() {
     const response = await fetch('/api/rotate-key', { method: 'POST' });
     const data = await response.json();
     if (data.ok) {
-      pushActivity(`🔐 Key rotated: ${data.rotation.new_key_id}`);
+      pushActivity(`ðŸ” Key rotated: ${data.rotation.new_key_id}`);
       state.logs = `${state.logs}\nKey rotated: ${data.rotation.new_key_id}`.trim();
       renderBottom();
     }
@@ -1290,7 +1299,7 @@
 
     el.repo.addEventListener('change', bootstrapUi);
     el.modeSelect.addEventListener('change', () => {
-      pushActivity(`🧭 Mode changed to ${el.modeSelect.value}`);
+      pushActivity(`ðŸ§­ Mode changed to ${el.modeSelect.value}`);
     });
 
     el.prompt.addEventListener('keydown', (event) => {
@@ -1306,7 +1315,7 @@
       el.approvalBox.style.display = 'none';
       closeReviewModal();
       if (!payload) return;
-      pushActivity('✅ Execution approved');
+      pushActivity('âœ… Execution approved');
       await executePayload(payload);
       el.prompt.value = '';
     });
@@ -1316,7 +1325,7 @@
       el.approvalBox.style.display = 'none';
       closeReviewModal();
       setAgentState('Blocked', 'b-warn');
-      pushActivity('⛔ Execution rejected by user');
+      pushActivity('â›” Execution rejected by user');
     });
 
     el.reviewChangesBtn.addEventListener('click', openReviewModal);
@@ -1345,3 +1354,8 @@
 </script>
 </body>
 </html>
+
+
+
+
+

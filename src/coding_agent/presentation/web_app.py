@@ -18,11 +18,19 @@ from .chat_service import CopilotChatService
 
 
 def create_app() -> Flask:
-    app = Flask(__name__, template_folder="../templates")
+    app = Flask(
+    __name__,
+    template_folder="../templates",
+    static_folder="../static",
+    static_url_path="/static",
+)
     project_root = Path(__file__).resolve().parents[3]
     runtime = build_default_runtime(project_root)
     agent: CodingAgent = runtime.orchestrator
-    chat_service: CopilotChatService = runtime.chat_service
+    chat_service = CopilotChatService(
+    llm_gateway=runtime.llm_gateway,
+    model_router=runtime.model_router,
+)
     model_router: ModelRouter = runtime.model_router
     jobs: dict[str, dict[str, Any]] = {}
     jobs_lock = threading.Lock()

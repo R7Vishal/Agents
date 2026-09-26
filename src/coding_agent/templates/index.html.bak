@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DevAgent Workspace</title>
+  <style>
+    :root {
+      --bg: #090f1d;
+      --panel: #101a2e;
+      --panel-2: #0d1627;
+      --border: #26395a;
+      --text: #e8eefb;
+      --muted: #9fb2d4;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --brand: #3b82f6;
+      --chip: #1b2b47;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 600px at 20% -20%, #1d4ed833, transparent), var(--bg);
+      color: var(--text);
+      font-family: Segoe UI, Inter, Arial, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #0d162b;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 12px #22c55e99;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .top-controls select,
+    .top-controls button,
+    .top-controls input {
+      border-radius: 10px;
+      border: 1px solid #304568;
+      background: #0a1325;
+      color: var(--text);
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .top-controls button {
+      background: #132140;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .status-pill {
+      border: 1px solid #27543a;
+      background: #113221;
+      color: #b5f0c8;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .command-box {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #0b1529;
+    }
+
+    .command-shell {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .command-shell textarea {
+      width: 100%;
+      min-height: 72px;
+      max-height: 160px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid #34496d;
+      background: #091327;
+      color: var(--text);
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .command-actions {
+      display: grid;
+      gap: 8px;
+      min-width: 170px;
+    }
+
+    .btn-primary {
+      border: 1px solid #2563eb;
+      background: #3b82f6;
+      color: #fff;
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .btn-ghost {
+      border: 1px solid #3d547d;
+      background: #16243f;
+      color: #d5e3fb;
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 280px 1fr 360px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .panel {
+      border-right: 1px solid var(--border);
+      background: var(--panel-2);
+      overflow: auto;
+    }
+
+    .panel:last-child {
+      border-right: none;
+      border-left: 1px solid var(--border);
+    }
+
+    .section {
+      margin: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+    }
+
+    .section h3 {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: .2px;
+      color: #c8d8f4;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-body {
+      padding: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .tree, .list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 5px;
+    }
+
+    .tree li, .list li {
+      padding: 5px 6px;
+      border-radius: 8px;
+      background: #0f1c34;
+      border: 1px solid #263a5e;
+      color: #d7e6ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tree li small, .list li small {
+      color: #a9bfdf;
+      margin-left: 6px;
+    }
+
+    .center {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      background: #0a1326;
+      overflow: hidden;
+    }
+
+    .workspace-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      background: #0f1a33;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 1px solid #35507a;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      background: #142540;
+      color: #d6e6ff;
+    }
+
+    .tab.active {
+      border-color: #3b82f6;
+      background: #1d3a68;
+    }
+
+    .file-title {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      background: #0c1730;
+      font-size: 13px;
+      color: #cde0ff;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .editor-view {
+      padding: 12px;
+      overflow: auto;
+      font-family: Consolas, Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      color: #dfe9ff;
+      background: #081225;
+      border-top: 1px solid #1c2f50;
+    }
+
+    .diff-add { color: #86efac; }
+    .diff-rem { color: #fca5a5; }
+
+    .agent-status {
+      display: grid;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .b-ok { background: #113b25; border: 1px solid #1e7a44; color: #b6f4cb; }
+    .b-warn { background: #3b2b10; border: 1px solid #9a6a1a; color: #f7dfb0; }
+    .b-err { background: #3a1720; border: 1px solid #9f2c48; color: #fecdd3; }
+    .b-info { background: #172f55; border: 1px solid #2d68bf; color: #cfe1ff; }
+
+    .progress {
+      height: 10px;
+      border-radius: 999px;
+      background: #091122;
+      border: 1px solid #2b4269;
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #22c55e, #3b82f6);
+      transition: width .25s ease;
+    }
+
+    .approval-box {
+      border: 1px solid #7a5a1a;
+      background: #2b220f;
+      border-radius: 10px;
+      padding: 8px;
+      color: #f9dfad;
+      display: none;
+    }
+
+    .approval-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .approval-actions button {
+      flex: 1;
+      border-radius: 8px;
+      border: 1px solid #4b6389;
+      background: #13233f;
+      color: #d3e2fb;
+      padding: 7px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 8, 23, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal {
+      width: min(920px, 96vw);
+      max-height: 82vh;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #0f1a33;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: #122241;
+      font-size: 13px;
+      font-weight: 700;
+      color: #dbe9ff;
+    }
+
+    .modal-summary {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: #bad0f3;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal-table-wrap {
+      overflow: auto;
+      padding: 0;
+    }
+
+    .modal-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .modal-table th,
+    .modal-table td {
+      border-bottom: 1px solid #22385d;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .modal-table th {
+      position: sticky;
+      top: 0;
+      background: #132748;
+      color: #dce9ff;
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    .mono {
+      font-family: Consolas, Menlo, monospace;
+      color: #d7e6ff;
+    }
+
+    .added { color: #86efac; }
+    .deleted { color: #fca5a5; }
+
+    .modal-footer {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: #10203d;
+    }
+
+    .bottom {
+      border-top: 1px solid var(--border);
+      background: #0b1529;
+      min-height: 170px;
+      max-height: 240px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .bottom-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .bottom-content {
+      padding: 10px;
+      overflow: auto;
+      font-family: Consolas, Menlo, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      color: #dbe7fb;
+    }
+
+    .chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .chip {
+      font-size: 11px;
+      border: 1px solid #34547f;
+      background: var(--chip);
+      color: #d2e6ff;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+
+    .small-input,
+    .small-select,
+    .small-check {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #35507a;
+      background: #0a1326;
+      color: #dcedff;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    @media (max-width: 1300px) {
+      .workspace { grid-template-columns: 250px 1fr 320px; }
+    }
+
+    @media (max-width: 1080px) {
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+      .panel, .panel:last-child { border: none; border-top: 1px solid var(--border); }
+      .bottom { max-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>🚀 DevAgent Control Center</span>
+      <span id="agentReady" class="status-pill">Agent Ready</span>
+    </div>
+    <div class="top-controls">
+      <select id="navView">
+        <option value="workspace">Workspace</option>
+        <option value="dashboard">Dashboard</option>
+        <option value="tests">Tests</option>
+        <option value="git">Git</option>
+        <option value="settings">Settings</option>
+      </select>
+      <select id="runtimeMode">
+        <option value="local">Local</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="cloud">Cloud</option>
+      </select>
+      <select id="modelSelect"></select>
+      <button id="refreshBtn">Refresh</button>
+      <button id="rotateBtn">Rotate Key</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="command-box">
+    <div class="command-shell">
+      <textarea id="prompt" placeholder="✨ What do you want me to build or change?"></textarea>
+      <div class="command-actions">
+        <button id="runBtn" class="btn-primary">Run Agent</button>
+        <button id="chatBtn" class="btn-ghost">Ask Only</button>
+      </div>
+    </div>
+    <div class="chips" id="modeChips"></div>
+  </div>
+
+  <div class="workspace">
+    <aside class="panel">
+      <div class="section">
+        <h3>📁 Project Explorer</h3>
+        <div class="section-body">
+          <input id="repo" class="small-input" value="." placeholder="Repo path" />
+          <div class="chips"><span class="chip" id="projectPathChip">project: .</span></div>
+          <p style="margin:8px 0 6px;">Folders</p>
+          <ul id="folderTree" class="tree"></ul>
+          <p style="margin:8px 0 6px;">Files</p>
+          <ul id="fileTree" class="tree"></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🌿 Git</h3>
+        <div class="section-body">
+          <div id="gitBranch">Branch: -</div>
+          <p style="margin:8px 0 6px;">Modified</p>
+          <ul id="gitModified" class="list"></ul>
+          <p style="margin:8px 0 6px;">Added</p>
+          <ul id="gitAdded" class="list"></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🔍 Search / Dependencies / Tests / Quality</h3>
+        <div class="section-body">
+          <div class="chips">
+            <span class="chip">Search</span>
+            <span class="chip">Dependencies</span>
+            <span class="chip">Tests</span>
+            <span class="chip">Code Quality</span>
+          </div>
+          <p style="margin-top:8px;">Use the command box to run repository queries and guided analysis.</p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="center">
+      <div class="workspace-tabs">
+        <span class="tab active" data-center-tab="code">Code</span>
+        <span class="tab" data-center-tab="diff">Diff</span>
+        <span class="tab" data-center-tab="history">History</span>
+        <span class="tab" data-center-tab="explain">Explain</span>
+      </div>
+      <div class="file-title">
+        <span id="activeFileTitle">No file selected</span>
+        <span id="changesSummary">No pending changes</span>
+      </div>
+      <div id="centerView" class="editor-view">Describe a task to start agent analysis, planning, execution, and review.</div>
+    </section>
+
+    <aside class="panel">
+      <div class="section">
+        <h3>🤖 AI Agent</h3>
+        <div class="section-body agent-status">
+          <div><strong>Task:</strong> <span id="taskTitle">No active task</span></div>
+          <div><strong>Status:</strong> <span id="agentState" class="badge b-info">Idle</span></div>
+          <div><strong>Current Action:</strong> <span id="currentAction">Waiting</span></div>
+          <div><strong>Reason:</strong> <span id="actionReason">Awaiting user command</span></div>
+          <div class="progress"><div id="progressBar"></div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>📋 Plan</h3>
+        <div class="section-body">
+          <ul id="planList" class="list"></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>⚡ Agent Activity</h3>
+        <div class="section-body">
+          <ul id="activityList" class="list"></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>⚠ Approval Gate</h3>
+        <div class="section-body">
+          <label style="display:flex;gap:8px;align-items:center; margin-bottom:8px;"><input id="approvalEnabled" type="checkbox" checked /> Require approval before execution</label>
+          <div id="approvalBox" class="approval-box">
+            <div id="approvalText">Pending agent request</div>
+            <div class="approval-actions">
+              <button id="reviewChangesBtn">Review Changes</button>
+              <button id="approveBtn">Approve</button>
+              <button id="rejectBtn">Reject</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🧭 Context</h3>
+        <div class="section-body">
+          <div id="contextSummary">Loading context...</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🧠 Integrated Models & Status</h3>
+        <div class="section-body">
+          <ul id="modelStatusList" class="list"></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🛡 Risk & Permissions</h3>
+        <div class="section-body">
+          <ul id="riskList" class="list"></ul>
+          <ul id="permissionList" class="list" style="margin-top:8px;"></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>⚙ Run Settings</h3>
+        <div class="section-body">
+          <div class="grid-2">
+            <div>
+              <label>Mode</label>
+              <select id="modeSelect" class="small-select">
+                <option value="first-run">first-run</option>
+                <option value="run-plan">run-plan</option>
+              </select>
+            </div>
+            <div>
+              <label>Agent mode</label>
+              <select id="agentMode" class="small-select">
+                <option>Ask</option>
+                <option>Explain</option>
+                <option selected>Code</option>
+                <option>Debug</option>
+                <option>Test</option>
+                <option>Review</option>
+                <option>Refactor</option>
+                <option>Architect</option>
+              </select>
+            </div>
+            <div>
+              <label>Plan file</label>
+              <input id="planFile" class="small-input" value="examples/simple-plan.json" />
+            </div>
+            <div>
+              <label>Output</label>
+              <input id="output" class="small-input" value="reports/ui-chat-run.md" />
+            </div>
+            <div>
+              <label>Max repair</label>
+              <input id="maxRepair" class="small-input" type="number" min="0" value="2" />
+            </div>
+            <div>
+              <label>Resume risk</label>
+              <input id="resumeMaxRisk" class="small-input" type="number" min="1" max="5" value="5" />
+            </div>
+            <div>
+              <label>Sandbox profile</label>
+              <select id="sandboxProfile" class="small-select">
+                <option value="local">local</option>
+                <option value="container">container</option>
+              </select>
+            </div>
+            <div>
+              <label>Validation pipeline</label>
+              <select id="validationPipeline" class="small-select">
+                <option value="false" selected>disabled</option>
+                <option value="true">enabled</option>
+              </select>
+            </div>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center; margin-top:8px;"><input id="executeOnSend" type="checkbox" /> Execute selected mode on Run Agent</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input id="baseline" type="checkbox" /> Run baseline checks (first-run)</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input id="resumeLatest" type="checkbox" /> Resume latest</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input id="resumeDryRun" type="checkbox" /> Resume dry-run</label>
+          <input id="resumeRunId" class="small-input" placeholder="Resume run ID (optional)" style="margin-top:8px;" />
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bottom">
+    <div class="bottom-tabs">
+      <span class="tab active" data-bottom-tab="terminal">Terminal</span>
+      <span class="tab" data-bottom-tab="tests">Tests</span>
+      <span class="tab" data-bottom-tab="logs">Logs</span>
+      <span class="tab" data-bottom-tab="git">Git</span>
+      <span class="tab" data-bottom-tab="trace">Agent Trace</span>
+      <span id="bottomSummary" style="margin-left:auto; color:#a8bcdd; font-size:12px;">Agent: 0%</span>
+    </div>
+    <div id="bottomContent" class="bottom-content">Ready.</div>
+  </div>
+</div>
+
+<div id="reviewModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="reviewModalTitle">Review Changes</span>
+      <button id="closeReviewModalTop" class="btn-ghost" type="button">Close</button>
+    </div>
+    <div class="modal-summary">
+      <span id="reviewSummaryText">No diff data available.</span>
+      <span id="reviewSortText">Sorted by highest churn</span>
+    </div>
+    <div class="modal-table-wrap">
+      <table class="modal-table">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Type</th>
+            <th>+ Added</th>
+            <th>- Deleted</th>
+            <th>Churn</th>
+          </tr>
+        </thead>
+        <tbody id="reviewTableBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button id="closeReviewModalBottom" class="btn-ghost" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const state = {
+    sessionId: null,
+    jobId: null,
+    centerTab: 'code',
+    bottomTab: 'terminal',
+    pendingExecutionPayload: null,
+    bootstrap: null,
+    latestReport: '',
+    activity: [],
+    terminal: '',
+    tests: '',
+    logs: '',
+    trace: '',
+    gitPanel: '',
+    diffStats: null,
+  };
+
+  const el = {
+    repo: document.getElementById('repo'),
+    output: document.getElementById('output'),
+    prompt: document.getElementById('prompt'),
+    runBtn: document.getElementById('runBtn'),
+    chatBtn: document.getElementById('chatBtn'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    rotateBtn: document.getElementById('rotateBtn'),
+    modeSelect: document.getElementById('modeSelect'),
+    planFile: document.getElementById('planFile'),
+    maxRepair: document.getElementById('maxRepair'),
+    resumeMaxRisk: document.getElementById('resumeMaxRisk'),
+    resumeRunId: document.getElementById('resumeRunId'),
+    resumeLatest: document.getElementById('resumeLatest'),
+    resumeDryRun: document.getElementById('resumeDryRun'),
+    baseline: document.getElementById('baseline'),
+    executeOnSend: document.getElementById('executeOnSend'),
+    sandboxProfile: document.getElementById('sandboxProfile'),
+    validationPipeline: document.getElementById('validationPipeline'),
+    centerView: document.getElementById('centerView'),
+    activeFileTitle: document.getElementById('activeFileTitle'),
+    changesSummary: document.getElementById('changesSummary'),
+    folderTree: document.getElementById('folderTree'),
+    fileTree: document.getElementById('fileTree'),
+    gitBranch: document.getElementById('gitBranch'),
+    gitModified: document.getElementById('gitModified'),
+    gitAdded: document.getElementById('gitAdded'),
+    taskTitle: document.getElementById('taskTitle'),
+    agentState: document.getElementById('agentState'),
+    currentAction: document.getElementById('currentAction'),
+    actionReason: document.getElementById('actionReason'),
+    progressBar: document.getElementById('progressBar'),
+    planList: document.getElementById('planList'),
+    activityList: document.getElementById('activityList'),
+    contextSummary: document.getElementById('contextSummary'),
+    modelStatusList: document.getElementById('modelStatusList'),
+    riskList: document.getElementById('riskList'),
+    permissionList: document.getElementById('permissionList'),
+    modelSelect: document.getElementById('modelSelect'),
+    runtimeMode: document.getElementById('runtimeMode'),
+    projectPathChip: document.getElementById('projectPathChip'),
+    bottomContent: document.getElementById('bottomContent'),
+    bottomSummary: document.getElementById('bottomSummary'),
+    approvalEnabled: document.getElementById('approvalEnabled'),
+    approvalBox: document.getElementById('approvalBox'),
+    approvalText: document.getElementById('approvalText'),
+    reviewChangesBtn: document.getElementById('reviewChangesBtn'),
+    approveBtn: document.getElementById('approveBtn'),
+    rejectBtn: document.getElementById('rejectBtn'),
+    reviewModalBackdrop: document.getElementById('reviewModalBackdrop'),
+    reviewSummaryText: document.getElementById('reviewSummaryText'),
+    reviewSortText: document.getElementById('reviewSortText'),
+    reviewTableBody: document.getElementById('reviewTableBody'),
+    closeReviewModalTop: document.getElementById('closeReviewModalTop'),
+    closeReviewModalBottom: document.getElementById('closeReviewModalBottom'),
+    modeChips: document.getElementById('modeChips'),
+  };
+
+  function nowStamp() {
+    return new Date().toLocaleTimeString();
+  }
+
+  function pushActivity(text) {
+    state.activity.unshift(`${nowStamp()}  ${text}`);
+    state.activity = state.activity.slice(0, 80);
+    renderActivity();
+  }
+
+  function renderActivity() {
+    el.activityList.innerHTML = state.activity.map(item => `<li>${escapeHtml(item)}</li>`).join('') || '<li>No activity yet</li>';
+  }
+
+  function setAgentState(label, tone = 'b-info') {
+    el.agentState.textContent = label;
+    el.agentState.className = `badge ${tone}`;
+  }
+
+  function setProgress(value) {
+    const v = Math.max(0, Math.min(100, Number(value || 0)));
+    el.progressBar.style.width = `${v}%`;
+    el.bottomSummary.textContent = `Agent: ${v}%`;
+  }
+
+  function renderPlan(items) {
+    el.planList.innerHTML = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  }
+
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function renderCenter() {
+    const report = state.latestReport || 'No execution output yet.';
+    const lines = report.split('\n');
+
+    if (state.centerTab === 'code') {
+      el.centerView.textContent = report;
+      return;
+    }
+
+    if (state.centerTab === 'diff') {
+      const html = lines.map(line => {
+        if (line.trim().startsWith('+')) return `<span class="diff-add">${escapeHtml(line)}</span>`;
+        if (line.trim().startsWith('-')) return `<span class="diff-rem">${escapeHtml(line)}</span>`;
+        return escapeHtml(line);
+      }).join('\n');
+      el.centerView.innerHTML = html;
+      return;
+    }
+
+    if (state.centerTab === 'history') {
+      el.centerView.textContent = state.activity.join('\n') || 'No history.';
+      return;
+    }
+
+    el.centerView.textContent = state.latestReport
+      ? 'Execution completed. Review report and diff tabs for details, then approve commit workflow if needed.'
+      : 'Use Explain to get rationale after execution.';
+  }
+
+  function renderBottom() {
+    if (state.bottomTab === 'terminal') el.bottomContent.textContent = state.terminal || 'Terminal output will appear here.';
+    if (state.bottomTab === 'tests') el.bottomContent.textContent = state.tests || 'Test results will appear here.';
+    if (state.bottomTab === 'logs') el.bottomContent.textContent = state.logs || 'Execution logs will appear here.';
+    if (state.bottomTab === 'git') el.bottomContent.textContent = state.gitPanel || 'Git summary will appear here.';
+    if (state.bottomTab === 'trace') el.bottomContent.textContent = state.trace || 'Agent trace will appear here.';
+  }
+
+  function renderModes() {
+    const chips = [
+      '🔍 Analyze', '💻 Code', '🐛 Debug', '🧪 Test', '🔄 Refactor', '🏗 Architect'
+    ];
+    el.modeChips.innerHTML = chips.map(item => `<span class="chip">${item}</span>`).join('');
+  }
+
+  async function bootstrapUi() {
+    const repo = el.repo.value.trim() || '.';
+    pushActivity('🧠 Loading workspace context');
+    const response = await fetch(`/api/ui/bootstrap?repo=${encodeURIComponent(repo)}`);
+    const data = await response.json();
+    if (!data.ok) {
+      pushActivity('❌ Failed to load bootstrap data');
+      return;
+    }
+
+    state.bootstrap = data;
+    state.diffStats = await fetchDiffStats(repo);
+    el.projectPathChip.textContent = `project: ${data.repo_path}`;
+    renderExplorer(data.explorer);
+    renderGit(data.git);
+    renderModels(data.models);
+    renderContext(data.explorer, data.models);
+    renderRisk(data.risk);
+    setAgentState('Ready', 'b-ok');
+    pushActivity('✅ Workspace context loaded');
+  }
+
+  function renderExplorer(explorer) {
+    el.folderTree.innerHTML = (explorer.folders || []).map(item => `<li>📁 ${escapeHtml(item)}</li>`).join('') || '<li>No folders</li>';
+    el.fileTree.innerHTML = (explorer.files || []).slice(0, 20).map(item => `<li>📄 ${escapeHtml(item)}</li>`).join('') || '<li>No files</li>';
+    el.activeFileTitle.textContent = explorer.selected || 'No file selected';
+    const totals = state.diffStats?.totals;
+    if (state.diffStats?.available && totals) {
+      el.changesSummary.textContent = `Δ ${totals.files} files | +${totals.added_lines} / -${totals.deleted_lines}`;
+    } else {
+      el.changesSummary.textContent = `Files indexed: ${explorer.file_count || 0}`;
+    }
+  }
+
+  async function fetchDiffStats(repo) {
+    try {
+      const response = await fetch(`/api/ui/diff-stats?repo=${encodeURIComponent(repo || '.')}`);
+      const data = await response.json();
+      if (!data.ok) return null;
+      return data.diff_stats || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function renderGit(git) {
+    el.gitBranch.textContent = git.available ? `Branch: ${git.branch || 'unknown'}` : 'Branch: no git repo';
+    el.gitModified.innerHTML = (git.modified || []).map(item => `<li>M ${escapeHtml(item)}</li>`).join('') || '<li>No modified files</li>';
+    el.gitAdded.innerHTML = (git.added || []).map(item => `<li>A ${escapeHtml(item)}</li>`).join('') || '<li>No added files</li>';
+
+    const gitText = [
+      `Branch: ${git.branch || '-'}`,
+      `Modified: ${(git.modified || []).length}`,
+      `Added: ${(git.added || []).length}`,
+      '',
+      ...(git.modified || []).map(item => `M ${item}`),
+      ...(git.added || []).map(item => `A ${item}`),
+    ].join('\n');
+    state.gitPanel = gitText;
+    renderBottom();
+  }
+
+  function renderModels(models) {
+    const items = models.items || [];
+    el.runtimeMode.value = models.runtime || 'local';
+    el.modelSelect.innerHTML = items.map(item => `<option value="${escapeHtml(item.key)}">${escapeHtml(item.label)}</option>`).join('');
+    if (models.active_route?.selected_model_key) {
+      el.modelSelect.value = models.active_route.selected_model_key;
+    }
+
+    el.modelStatusList.innerHTML = items.map(item => {
+      const tone = item.status === 'active-route' ? 'b-info' : (item.integrated ? 'b-ok' : 'b-warn');
+      const stateLabel = item.status === 'active-route' ? 'active' : (item.integrated ? 'integrated' : 'not integrated');
+      return `<li><span class="badge ${tone}">${escapeHtml(stateLabel)}</span>${escapeHtml(item.label)}<small>${escapeHtml(item.provider)}</small></li>`;
+    }).join('') || '<li>No models</li>';
+  }
+
+  function renderContext(explorer, models) {
+    const related = (explorer.related || []).map(item => `- ${item}`).join('\n') || '- none';
+    const tests = (explorer.tests || []).map(item => `- ${item}`).join('\n') || '- none';
+    const docs = (explorer.docs || []).map(item => `- ${item}`).join('\n') || '- none';
+
+    el.contextSummary.textContent = [
+      `Project files: ${explorer.file_count || 0}`,
+      `Selected: ${explorer.selected || '-'}`,
+      'Related:', related,
+      'Tests:', tests,
+      'Docs:', docs,
+      `Context tokens: ${explorer.context_tokens || 0}`,
+      `Hardware: ${models.hardware.cpu}, VRAM ${models.hardware.gpu_vram_gb}GB, RAM ${models.hardware.ram_gb}GB`,
+      `Max context: ${models.hardware.context_tokens}`,
+    ].join('\n');
+  }
+
+  function renderRisk(risk) {
+    const entries = Object.entries({
+      'Read files': risk.read_files,
+      'Run tests': risk.run_tests,
+      'Modify source': risk.modify_source,
+      'Install package': risk.install_package,
+      'Delete files': risk.delete_files,
+      'Execute shell': risk.execute_shell,
+      'Git push': risk.git_push,
+    });
+
+    el.riskList.innerHTML = entries.map(([name, level]) => {
+      const tone = level === 'low' ? 'b-ok' : (level === 'medium' ? 'b-warn' : 'b-err');
+      return `<li><span class="badge ${tone}">${escapeHtml(level)}</span>${escapeHtml(name)}</li>`;
+    }).join('');
+
+    const permissions = Object.entries(risk.permissions || {});
+    el.permissionList.innerHTML = permissions.map(([name, value]) => {
+      const tone = value ? 'b-ok' : 'b-warn';
+      return `<li><span class="badge ${tone}">${value ? 'enabled' : 'disabled'}</span>${escapeHtml(name)}</li>`;
+    }).join('');
+  }
+
+  function switchCenterTab(tab) {
+    state.centerTab = tab;
+    document.querySelectorAll('[data-center-tab]').forEach(item => {
+      item.classList.toggle('active', item.dataset.centerTab === tab);
+    });
+    renderCenter();
+  }
+
+  function switchBottomTab(tab) {
+    state.bottomTab = tab;
+    document.querySelectorAll('[data-bottom-tab]').forEach(item => {
+      item.classList.toggle('active', item.dataset.bottomTab === tab);
+    });
+    renderBottom();
+  }
+
+  function buildRunPayload(executeMode) {
+    const payload = {
+      prompt: el.prompt.value.trim(),
+      session_id: state.sessionId,
+      repo: el.repo.value.trim() || '.',
+      output: el.output.value.trim(),
+      mode: el.modeSelect.value,
+      plan_file: el.planFile.value.trim(),
+      max_repair_attempts_per_task: Number(el.maxRepair.value || 2),
+      resume_max_risk: Number(el.resumeMaxRisk.value || 5),
+      resume_run_id: el.resumeRunId.value.trim(),
+      resume_latest: el.resumeLatest.checked,
+      resume_dry_run: el.resumeDryRun.checked,
+      run_baseline: el.baseline.checked,
+      execute_mode: executeMode,
+      async_mode: true,
+      sandbox_profile: el.sandboxProfile.value,
+      run_validation_pipeline: el.validationPipeline.value === 'true',
+      validation_retries_per_stage: 1,
+    };
+    return payload;
+  }
+
+  async function showApproval(payload) {
+    state.diffStats = await fetchDiffStats(payload.repo);
+    const totals = state.diffStats?.totals;
+    const likelyFiles = totals ? totals.files : ((state.bootstrap?.git?.modified || []).length + (state.bootstrap?.git?.added || []).length);
+    const commandRisk = payload.prompt.toLowerCase().includes('docker compose down') ? 'high-risk command requested' : 'source edit/test execution';
+    const topFiles = (state.diffStats?.files || []).slice(0, 5).map(item => `${item.path} (+${item.added_lines}/-${item.deleted_lines})`).join(', ');
+    const impactText = totals
+      ? `${likelyFiles} files, +${totals.added_lines} / -${totals.deleted_lines}`
+      : `${likelyFiles} changed files`;
+    state.pendingExecutionPayload = payload;
+    el.approvalText.textContent = `Agent requests execution in mode ${payload.mode}. Impact: ${impactText} (${commandRisk}).${topFiles ? ` Files: ${topFiles}` : ''}`;
+    el.approvalBox.style.display = 'block';
+    el.reviewChangesBtn.disabled = !(state.diffStats?.available && (state.diffStats?.files || []).length > 0);
+    setAgentState('Waiting Approval', 'b-warn');
+    pushActivity('👤 Waiting for approval');
+  }
+
+  function sortedDiffFiles() {
+    const files = [...(state.diffStats?.files || [])];
+    files.sort((a, b) => {
+      const churnA = Number(a.added_lines || 0) + Number(a.deleted_lines || 0);
+      const churnB = Number(b.added_lines || 0) + Number(b.deleted_lines || 0);
+      if (churnB !== churnA) return churnB - churnA;
+      return String(a.path || '').localeCompare(String(b.path || ''));
+    });
+    return files;
+  }
+
+  function openReviewModal() {
+    const totals = state.diffStats?.totals;
+    const files = sortedDiffFiles();
+    if (!state.diffStats?.available || !files.length) {
+      el.reviewSummaryText.textContent = 'No changed files detected for review.';
+      el.reviewTableBody.innerHTML = '<tr><td colspan="5">No diff stats available.</td></tr>';
+    } else {
+      el.reviewSummaryText.textContent = `Changed files: ${totals.files} | +${totals.added_lines} / -${totals.deleted_lines}`;
+      el.reviewSortText.textContent = 'Sorted by highest churn (added + deleted lines)';
+      el.reviewTableBody.innerHTML = files.map(item => {
+        const added = Number(item.added_lines || 0);
+        const deleted = Number(item.deleted_lines || 0);
+        const churn = added + deleted;
+        return `
+          <tr>
+            <td class="mono">${escapeHtml(item.path || '')}</td>
+            <td>${escapeHtml(item.change_type || 'modified')}</td>
+            <td class="added">+${added}</td>
+            <td class="deleted">-${deleted}</td>
+            <td>${churn}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    el.reviewModalBackdrop.style.display = 'flex';
+  }
+
+  function closeReviewModal() {
+    el.reviewModalBackdrop.style.display = 'none';
+  }
+
+  async function executePayload(payload) {
+    setAgentState('Working', 'b-info');
+    setProgress(8);
+    el.taskTitle.textContent = payload.prompt.slice(0, 80) || 'Task';
+    el.currentAction.textContent = 'Analyzing task';
+    el.actionReason.textContent = 'User goal accepted, building plan and dispatching run';
+    renderPlan([
+      '✓ Analyze request',
+      '✓ Inspect repository context',
+      '→ Prepare execution',
+      '○ Run workflow',
+      '○ Collect results',
+      '○ Review changes',
+    ]);
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+
+    if (!data.ok) {
+      setAgentState('Failed', 'b-err');
+      pushActivity(`❌ ${data.error || 'Execution failed'}`);
+      state.logs = `${state.logs}\n${data.error || 'Execution failed'}`.trim();
+      renderBottom();
+      return;
+    }
+
+    state.sessionId = data.session_id || state.sessionId;
+    state.jobId = data.job_id || null;
+    pushActivity('🧠 Task received');
+    pushActivity('🔍 Searching project and preparing execution');
+
+    const reply = data.reply || 'No assistant reply';
+    state.logs = `${state.logs}\nAssistant: ${reply}`.trim();
+    state.trace = `${state.trace}\n${nowStamp()}  Task dispatched: ${payload.mode}`.trim();
+    renderBottom();
+
+    if (state.jobId) pollJob(state.jobId);
+  }
+
+  async function pollJob(jobId) {
+    let done = false;
+    while (!done) {
+      await new Promise(r => setTimeout(r, 1200));
+      const response = await fetch(`/api/job/${encodeURIComponent(jobId)}`);
+      const data = await response.json();
+      if (!data.ok) continue;
+
+      const job = data.job;
+      setProgress(job.progress || 0);
+      el.currentAction.textContent = job.message || 'Running';
+      el.actionReason.textContent = `Job status: ${job.status}`;
+      pushActivity(`⚡ ${job.message || job.status}`);
+
+      const details = (job.details || []).join('\n');
+      state.trace = details || state.trace;
+      state.logs = `${state.logs}\n${details}`.trim();
+      state.terminal = `> ${el.modeSelect.value}\n${details}`;
+      renderBottom();
+
+      if (job.status === 'completed') {
+        done = true;
+        setAgentState('Completed', 'b-ok');
+        setProgress(100);
+        renderPlan([
+          '✓ Analyze request',
+          '✓ Inspect repository context',
+          '✓ Prepare execution',
+          '✓ Run workflow',
+          '✓ Collect results',
+          '✓ Review changes',
+        ]);
+
+        const report = job.result?.report || 'Execution completed.';
+        state.latestReport = report;
+        renderCenter();
+
+        const testLines = report.split('\n').filter(line => /pass|fail|blocked|completed|test/i.test(line));
+        state.tests = testLines.join('\n') || 'No explicit test output in report.';
+        state.logs = `${state.logs}\nExecution completed.`.trim();
+
+        pushActivity('✅ Execution completed');
+        bootstrapUi();
+      }
+
+      if (job.status === 'failed') {
+        done = true;
+        setAgentState('Failed', 'b-err');
+        setProgress(100);
+        state.logs = `${state.logs}\n${job.error || 'Job failed'}`.trim();
+        pushActivity(`❌ ${job.error || 'Job failed'}`);
+        renderBottom();
+      }
+    }
+  }
+
+  async function send(executeMode) {
+    const prompt = el.prompt.value.trim();
+    if (!prompt) return;
+
+    const payload = buildRunPayload(executeMode);
+    if (executeMode && el.approvalEnabled.checked) {
+      await showApproval(payload);
+      return;
+    }
+
+    await executePayload(payload);
+    el.prompt.value = '';
+  }
+
+  function clearUi() {
+    state.latestReport = '';
+    state.logs = '';
+    state.trace = '';
+    state.tests = '';
+    state.terminal = '';
+    state.activity = [];
+    renderCenter();
+    renderBottom();
+    renderActivity();
+    setProgress(0);
+    setAgentState('Idle', 'b-info');
+    el.taskTitle.textContent = 'No active task';
+    el.currentAction.textContent = 'Waiting';
+    el.actionReason.textContent = 'Awaiting user command';
+    renderPlan(['○ Analyze error', '○ Inspect code', '○ Modify files', '○ Run tests', '○ Review changes']);
+  }
+
+  async function rotateKey() {
+    const response = await fetch('/api/rotate-key', { method: 'POST' });
+    const data = await response.json();
+    if (data.ok) {
+      pushActivity(`🔐 Key rotated: ${data.rotation.new_key_id}`);
+      state.logs = `${state.logs}\nKey rotated: ${data.rotation.new_key_id}`.trim();
+      renderBottom();
+    }
+  }
+
+  function bindEvents() {
+    document.querySelectorAll('[data-center-tab]').forEach(item => {
+      item.addEventListener('click', () => switchCenterTab(item.dataset.centerTab));
+    });
+
+    document.querySelectorAll('[data-bottom-tab]').forEach(item => {
+      item.addEventListener('click', () => switchBottomTab(item.dataset.bottomTab));
+    });
+
+    el.runBtn.addEventListener('click', () => send(!!el.executeOnSend.checked));
+    el.chatBtn.addEventListener('click', () => send(false));
+    el.refreshBtn.addEventListener('click', bootstrapUi);
+    el.clearBtn.addEventListener('click', clearUi);
+    el.rotateBtn.addEventListener('click', rotateKey);
+
+    el.repo.addEventListener('change', bootstrapUi);
+    el.modeSelect.addEventListener('change', () => {
+      pushActivity(`🧭 Mode changed to ${el.modeSelect.value}`);
+    });
+
+    el.prompt.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        send(!!el.executeOnSend.checked);
+      }
+    });
+
+    el.approveBtn.addEventListener('click', async () => {
+      const payload = state.pendingExecutionPayload;
+      state.pendingExecutionPayload = null;
+      el.approvalBox.style.display = 'none';
+      closeReviewModal();
+      if (!payload) return;
+      pushActivity('✅ Execution approved');
+      await executePayload(payload);
+      el.prompt.value = '';
+    });
+
+    el.rejectBtn.addEventListener('click', () => {
+      state.pendingExecutionPayload = null;
+      el.approvalBox.style.display = 'none';
+      closeReviewModal();
+      setAgentState('Blocked', 'b-warn');
+      pushActivity('⛔ Execution rejected by user');
+    });
+
+    el.reviewChangesBtn.addEventListener('click', openReviewModal);
+    el.closeReviewModalTop.addEventListener('click', closeReviewModal);
+    el.closeReviewModalBottom.addEventListener('click', closeReviewModal);
+    el.reviewModalBackdrop.addEventListener('click', (event) => {
+      if (event.target === el.reviewModalBackdrop) closeReviewModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && el.reviewModalBackdrop.style.display === 'flex') {
+        closeReviewModal();
+      }
+    });
+  }
+
+  async function init() {
+    bindEvents();
+    renderModes();
+    clearUi();
+    await bootstrapUi();
+    renderBottom();
+  }
+
+  init();
+</script>
+</body>
+</html>

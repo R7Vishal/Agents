@@ -8,7 +8,14 @@ from .retrieval import LocalCodeSearchAdapter
 from .editing import StructuredEditor
 from .orchestration.agent import CodingAgent
 from .presentation.chat_service import CopilotChatService
-from .reasoning import HardwareProfile, LLMGateway, ModelRouter, NullLLMProvider, RoutingPolicy
+from .reasoning import (
+    HardwareProfile,
+    LLMGateway,
+    LMStudioProvider,
+    ModelRouter,
+    NullLLMProvider,
+    RoutingPolicy,
+)
 
 
 @dataclass(frozen=True)
@@ -50,7 +57,20 @@ def build_default_runtime(project_root: Path) -> LayeredAgentRuntime:
             allow_cloud_fallback=False,
         ),
     )
+
     llm_gateway = LLMGateway(default_provider=NullLLMProvider())
+
+    lmstudio_provider = LMStudioProvider()
+
+    llm_gateway.register_provider(
+        "qwen2.5-coder-3b-q4",
+        lmstudio_provider,
+    )
+
+    llm_gateway.register_provider(
+        "qwen2.5-coder-7b-q4",
+        lmstudio_provider,
+    )
 
     return LayeredAgentRuntime(
         project_root=project_root,
@@ -64,7 +84,7 @@ def build_default_runtime(project_root: Path) -> LayeredAgentRuntime:
         components=LayeredAgentComponents(
             ui="web_app.py + templates/index.html",
             orchestrator="agent.py::CodingAgent",
-            reasoning="reasoning/ (ModelRouter + LLMGateway abstraction; no provider integration)",
+            reasoning="reasoning/ (ModelRouter + LLMGateway + LMStudioProvider)",
             repository_understanding="repo_intel.py",
             code_search="retrieval/adapters.py::LocalCodeSearchAdapter",
             planning="planner.py",

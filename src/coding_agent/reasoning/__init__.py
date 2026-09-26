@@ -1,3 +1,4 @@
+from .lmstudio import LMStudioProvider
 from .provider import LLMGateway, LLMProvider, MockLLMProvider, NullLLMProvider
 from .router import HeuristicTaskClassifier, ModelRouter
 from .types import (
