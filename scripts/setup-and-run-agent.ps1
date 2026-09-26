@@ -46,8 +46,7 @@ if ($pyVersion -lt [version]"3.10") {
     throw "Python 3.10+ is required. Current: $pyVersion"
 }
 
-#$installScript = Join-Path $target "scripts\install-agent.ps1"
-$installScript = Join-Path $PSScriptRoot "install-agent.ps1"
+$installScript = Join-Path $target "scripts\install-agent.ps1"
 if (-not (Test-Path $installScript)) {
     throw "Install script not found: $installScript"
 }

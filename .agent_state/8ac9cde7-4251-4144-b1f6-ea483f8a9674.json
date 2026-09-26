@@ -1,0 +1,62 @@
+{
+  "run_id": "8ac9cde7-4251-4144-b1f6-ea483f8a9674",
+  "requirement": "Execute controlled task plan.",
+  "state": "BLOCKED",
+  "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent",
+  "notes": {
+    "mode": "run-plan",
+    "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\resume-blocked-plan.json",
+    "max_repair_attempts_per_task": 0,
+    "results": [
+      {
+        "task_id": "T1",
+        "status": "COMPLETED",
+        "attempts": 1,
+        "repair_attempts": 0,
+        "failure_type": null,
+        "message": "Task completed",
+        "duration_ms": 946
+      },
+      {
+        "task_id": "T2",
+        "status": "FAILED",
+        "attempts": 1,
+        "repair_attempts": 0,
+        "failure_type": "UNKNOWN",
+        "message": "Task command failed after repair budget",
+        "duration_ms": 682
+      }
+    ],
+    "checkpoint": {
+      "data": {
+        "T1": {
+          "status": "PENDING",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": ""
+        },
+        "T2": {
+          "status": "FAILED",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": "UNKNOWN"
+        }
+      },
+      "hash": "34f416e1db9a1c1d99c0c6ea0c3856c385a577a40d31b6a2fea63f61e650ff0f"
+    },
+    "integrity_forensics": {
+      "expected_hash": "34f416e1db9a1c1d99c0c6ea0c3856c385a577a40d31b6a2fea63f61e650ff0f",
+      "actual_hash": "1984c9cb500accdc699a9ef9e9519fa8e3ea30ec227f50be3f8ce8395ab99b3b",
+      "task_ids": [
+        "T1",
+        "T2"
+      ],
+      "task_count": 2,
+      "payload_keys": [
+        "T1",
+        "T2"
+      ]
+    }
+  },
+  "updated_at": "2026-09-24T01:40:01.392797+00:00"
+}

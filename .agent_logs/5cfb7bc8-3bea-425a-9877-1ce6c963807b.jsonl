@@ -1,0 +1,6 @@
+{"timestamp": "2026-09-24T03:54:43.709191+00:00", "event": "run_started", "mode": "run-plan", "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent", "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\simple-plan.json", "resumed": false}
+{"timestamp": "2026-09-24T03:54:43.711184+00:00", "event": "checkpoint_loaded", "completed": 0, "integrity": "verified"}
+{"timestamp": "2026-09-24T03:54:43.713209+00:00", "event": "state_transition", "state": "EXECUTING"}
+{"timestamp": "2026-09-24T03:54:43.715207+00:00", "event": "task_event", "type": "task_started", "task_id": "T001", "attempt": 1}
+{"timestamp": "2026-09-24T03:54:44.621813+00:00", "event": "task_event", "type": "task_completed", "task_id": "T001", "duration_ms": 906}
+{"timestamp": "2026-09-24T03:54:44.624824+00:00", "event": "task_event", "type": "task_started", "task_id": "T002", "attempt": 1}
