@@ -5,9 +5,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = Split-Path $PSScriptRoot -Parent
-Set-Location $ProjectRoot
-
 $target = Resolve-Path $ProjectPath
 Set-Location $target
 

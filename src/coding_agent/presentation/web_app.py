@@ -141,6 +141,9 @@ def create_app() -> Flask:
                 }
             )
 
+        integrated_count = sum(1 for item in items if item["integrated"])
+        pending = integrated_count == 0
+
         return {
             "runtime": "local" if not model_router.policy.allow_cloud_fallback else "hybrid",
             "hardware": {
@@ -151,6 +154,11 @@ def create_app() -> Flask:
             },
             "active_route": asdict(active_route),
             "items": items,
+            "integration_status": {
+                "pending": pending,
+                "message": "Integration is pending with LLM" if pending else "LLM integration is active",
+                "integrated_models": integrated_count,
+            },
         }
 
     def _build_project_explorer(repo_path: Path) -> dict[str, Any]:
@@ -579,13 +587,19 @@ def create_app() -> Flask:
             action=action,
         )
 
+        integration_status = _model_status_payload()["integration_status"]
+
         response: dict[str, Any] = {
             "ok": True,
             "session_id": chat_result["session_id"],
             "reply": chat_result["reply"],
             "message_count": chat_result["message_count"],
             "action": action,
+            "integration_note": integration_status["message"],
         }
+
+        if integration_status["pending"] and not action:
+            response["reply"] = f"{response['reply']}\n\nIntegration is pending with LLM"
 
         if not action:
             return jsonify(response)

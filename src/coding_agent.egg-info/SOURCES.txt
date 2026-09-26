@@ -64,8 +64,6 @@ tests/test_key_rotation.py
 tests/test_layers_structure.py
 tests/test_lifecycle.py
 tests/test_planner.py
-tests/test_reasoning_gateway_fallback.py
-tests/test_reasoning_provider_contract.py
 tests/test_reasoning_router.py
 tests/test_repo_intel.py
 tests/test_resume_preview_and_integrity.py

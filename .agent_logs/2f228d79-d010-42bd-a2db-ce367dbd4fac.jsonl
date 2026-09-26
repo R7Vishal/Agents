@@ -1,0 +1,8 @@
+{"timestamp": "2026-09-24T03:22:02.959127+00:00", "event": "run_started", "mode": "run-plan", "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent", "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\simple-plan.json", "resumed": false}
+{"timestamp": "2026-09-24T03:22:02.962124+00:00", "event": "checkpoint_loaded", "completed": 0, "integrity": "verified"}
+{"timestamp": "2026-09-24T03:22:02.965157+00:00", "event": "state_transition", "state": "EXECUTING"}
+{"timestamp": "2026-09-24T03:22:02.966162+00:00", "event": "task_event", "type": "task_started", "task_id": "T001", "attempt": 1}
+{"timestamp": "2026-09-24T03:22:03.891079+00:00", "event": "task_event", "type": "task_completed", "task_id": "T001", "duration_ms": 925}
+{"timestamp": "2026-09-24T03:22:03.895082+00:00", "event": "task_event", "type": "task_started", "task_id": "T002", "attempt": 1}
+{"timestamp": "2026-09-24T03:22:13.675380+00:00", "event": "task_event", "type": "task_completed", "task_id": "T002", "duration_ms": 9780}
+{"timestamp": "2026-09-24T03:22:13.681376+00:00", "event": "run_completed", "mode": "run-plan", "state": "COMPLETED"}

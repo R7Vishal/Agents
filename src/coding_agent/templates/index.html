@@ -935,6 +935,9 @@
     renderContext(data.explorer, data.models);
     renderRisk(data.risk);
     setAgentState('Ready', 'b-ok');
+    if (data.models?.integration_status?.message) {
+      pushActivity(`ℹ️ ${data.models.integration_status.message}`);
+    }
     pushActivity('✅ Workspace context loaded');
   }
 
@@ -980,6 +983,7 @@
 
   function renderModels(models) {
     const items = models.items || [];
+    const integration = models.integration_status || {};
     el.runtimeMode.value = models.runtime || 'local';
     el.modelSelect.innerHTML = items.map(item => `<option value="${escapeHtml(item.key)}">${escapeHtml(item.label)}</option>`).join('');
     if (models.active_route?.selected_model_key) {
@@ -991,6 +995,11 @@
       const stateLabel = item.status === 'active-route' ? 'active' : (item.integrated ? 'integrated' : 'not integrated');
       return `<li><span class="badge ${tone}">${escapeHtml(stateLabel)}</span>${escapeHtml(item.label)}<small>${escapeHtml(item.provider)}</small></li>`;
     }).join('') || '<li>No models</li>';
+
+    if (integration.message) {
+      const tone = integration.pending ? 'b-warn' : 'b-ok';
+      el.modelStatusList.innerHTML += `<li><span class="badge ${tone}">${integration.pending ? 'pending' : 'ready'}</span>${escapeHtml(integration.message)}</li>`;
+    }
   }
 
   function renderContext(explorer, models) {
@@ -1147,40 +1156,74 @@
       '○ Review changes',
     ]);
 
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
 
-    if (!data.ok) {
-      setAgentState('Failed', 'b-err');
-      pushActivity(`❌ ${data.error || 'Execution failed'}`);
-      state.logs = `${state.logs}\n${data.error || 'Execution failed'}`.trim();
+      if (!data.ok) {
+        setAgentState('Failed', 'b-err');
+        setProgress(100);
+        pushActivity(`❌ ${data.error || 'Execution failed'}`);
+        state.logs = `${state.logs}\n${data.error || 'Execution failed'}`.trim();
+        renderBottom();
+        return;
+      }
+
+      state.sessionId = data.session_id || state.sessionId;
+      state.jobId = data.job_id || null;
+      pushActivity('🧠 Task received');
+      pushActivity('🔍 Searching project and preparing execution');
+
+      const reply = data.reply || 'No assistant reply';
+      const integrationNote = data.integration_note ? `\nIntegration: ${data.integration_note}` : '';
+      state.logs = `${state.logs}\nAssistant: ${reply}${integrationNote}`.trim();
+      state.trace = `${state.trace}\n${nowStamp()}  Task dispatched: ${payload.mode}`.trim();
       renderBottom();
-      return;
+
+      if (!state.jobId) {
+        setAgentState('Completed', 'b-ok');
+        setProgress(100);
+        el.currentAction.textContent = 'Response ready';
+        el.actionReason.textContent = 'Completed in chat mode without execution job';
+        state.latestReport = reply;
+        renderCenter();
+        renderPlan([
+          '✓ Analyze request',
+          '✓ Inspect repository context',
+          '✓ Generate response',
+          '✓ Complete',
+        ]);
+        pushActivity('✅ Response generated');
+        return;
+      }
+
+      pollJob(state.jobId);
+    } catch (error) {
+      setAgentState('Failed', 'b-err');
+      setProgress(100);
+      const message = error && error.message ? error.message : 'Request failed';
+      pushActivity(`❌ ${message}`);
+      state.logs = `${state.logs}\n${message}`.trim();
+      renderBottom();
     }
-
-    state.sessionId = data.session_id || state.sessionId;
-    state.jobId = data.job_id || null;
-    pushActivity('🧠 Task received');
-    pushActivity('🔍 Searching project and preparing execution');
-
-    const reply = data.reply || 'No assistant reply';
-    state.logs = `${state.logs}\nAssistant: ${reply}`.trim();
-    state.trace = `${state.trace}\n${nowStamp()}  Task dispatched: ${payload.mode}`.trim();
-    renderBottom();
-
-    if (state.jobId) pollJob(state.jobId);
   }
 
   async function pollJob(jobId) {
     let done = false;
     while (!done) {
       await new Promise(r => setTimeout(r, 1200));
-      const response = await fetch(`/api/job/${encodeURIComponent(jobId)}`);
-      const data = await response.json();
+      let data = null;
+      try {
+        const response = await fetch(`/api/job/${encodeURIComponent(jobId)}`);
+        data = await response.json();
+      } catch {
+        pushActivity('⚠ Job poll retrying after transient error');
+        continue;
+      }
       if (!data.ok) continue;
 
       const job = data.job;
@@ -1290,6 +1333,9 @@
 
     el.repo.addEventListener('change', bootstrapUi);
     el.modeSelect.addEventListener('change', () => {
+      if (el.modeSelect.value === 'run-plan') {
+        el.executeOnSend.checked = true;
+      }
       pushActivity(`🧭 Mode changed to ${el.modeSelect.value}`);
     });
 

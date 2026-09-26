@@ -1,0 +1,32 @@
+{
+  "run_id": "5cfb7bc8-3bea-425a-9877-1ce6c963807b",
+  "requirement": "ui run-plan test",
+  "state": "EXECUTING",
+  "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent",
+  "notes": {
+    "mode": "run-plan",
+    "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\simple-plan.json",
+    "max_repair_attempts_per_task": 2,
+    "checkpoint": {
+      "data": {
+        "T001": {
+          "status": "COMPLETED",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": ""
+        },
+        "T002": {
+          "status": "RUNNING",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": ""
+        }
+      },
+      "algorithm": "HMAC-SHA256",
+      "signature_version": "v2",
+      "signature": "707ba35a1251cbf8846c16486aa8e57e9dcbb1c80fa21803b61f020919ebb286",
+      "key_id": "k2"
+    }
+  },
+  "updated_at": "2026-09-24T03:54:44.625813+00:00"
+}

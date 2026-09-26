@@ -1,0 +1,52 @@
+{
+  "run_id": "3e8cac85-7ffd-4d8e-9d6f-4663d840da48",
+  "requirement": "smoke run-plan",
+  "state": "COMPLETED",
+  "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent",
+  "notes": {
+    "mode": "run-plan",
+    "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\simple-plan.json",
+    "max_repair_attempts_per_task": 1,
+    "results": [
+      {
+        "task_id": "T001",
+        "status": "COMPLETED",
+        "attempts": 1,
+        "repair_attempts": 0,
+        "failure_type": null,
+        "message": "Task completed",
+        "duration_ms": 977
+      },
+      {
+        "task_id": "T002",
+        "status": "COMPLETED",
+        "attempts": 1,
+        "repair_attempts": 0,
+        "failure_type": null,
+        "message": "Task completed",
+        "duration_ms": 10162
+      }
+    ],
+    "checkpoint": {
+      "data": {
+        "T001": {
+          "status": "COMPLETED",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": ""
+        },
+        "T002": {
+          "status": "COMPLETED",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": ""
+        }
+      },
+      "algorithm": "HMAC-SHA256",
+      "signature_version": "v2",
+      "signature": "2af681d0c6a17aa4fc5b9832be8d2b79160884ab4d83385c6e7e23691a0d8b76",
+      "key_id": "k2"
+    }
+  },
+  "updated_at": "2026-09-24T04:08:58.922728+00:00"
+}
