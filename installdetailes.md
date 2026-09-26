@@ -102,6 +102,16 @@ Open in browser:
 http://127.0.0.1:5050
 ```
 
+Guide page:
+
+```text
+http://127.0.0.1:5050/guide
+```
+
+From the UI top bar, you can run:
+
+- **Run Acceptance** (one-click scenarios 1-8 + report open)
+
 ## 8) Verification checklist
 
 - `python --version` shows 3.10+
@@ -109,8 +119,29 @@ http://127.0.0.1:5050
 - Tests pass (`pytest`)
 - `coding-agent run-config ...` generates a report
 - UI starts at `http://127.0.0.1:5050`
+- Guide opens at `http://127.0.0.1:5050/guide`
+- Acceptance report opens from one-click UI flow
 
-## 9) Troubleshooting
+## 9) Benchmark and acceptance scripts
+
+Run acceptance scenarios directly:
+
+```powershell
+python .\scripts\run_acceptance_scenarios.py
+```
+
+Run Copilot parity benchmark:
+
+```powershell
+python .\scripts\run_copilot_parity_benchmark.py
+```
+
+Outputs:
+
+- `reports/acceptance-scenarios-report.md`
+- `reports/copilot-parity-benchmark.md`
+
+## 10) Troubleshooting
 
 ### Issue: editable install fails with file lock (`WinError 32`)
 
@@ -138,7 +169,7 @@ Use venv-local executables directly:
 
 Update `repo` in `.vscode/coding-agent.json` to the correct path and rerun.
 
-## 10) Recommended first run
+## 11) Recommended first run
 
 On a new machine, start with:
 

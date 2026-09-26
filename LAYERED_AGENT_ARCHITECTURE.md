@@ -2,6 +2,18 @@
 
 This document restructures the current codebase into clear architectural layers aligned with your AI Coding Agent model.
 
+## Latest update (2026-09-26)
+
+The architecture has been advanced with production-oriented capabilities:
+
+- Persistent semantic index for repository search (`retrieval/semantic_index.py`)
+- Workspace-bounded filesystem manager (`workspace_manager.py`)
+- Centralized tool registry + capability manager (`tools/registry.py`, `tools/capabilities.py`)
+- Approval-token workflow for destructive actions (`tools/approval_tokens.py`)
+- Optional provider-backed LLM integration + telemetry (`reasoning/provider.py`)
+- Deeper repair proposals for multi-file patching (`execution/repair_strategies.py`)
+- Guide page and one-click benchmark/acceptance UI flows (`/guide`, `/api/acceptance/*`)
+
 ## 1) Agent Loop (Core)
 
 The system follows a **Reason -> Act -> Observe -> Repair/Validate** loop:
@@ -67,8 +79,9 @@ Current loop implementation lives primarily in:
 - `CopilotChatService.reply(...)`
 
 **Current policy decision**:
-- No runtime LLM integration is enabled now.
-- Keep provider abstraction only (future integration).
+- Provider abstraction remains default-safe.
+- Runtime provider integration is optional and policy-gated via environment variables.
+- Telemetry is available at `/api/reasoning/telemetry`.
 
 See: `LOCAL_MODEL_ROUTING_STRATEGY.md`
 
@@ -95,13 +108,17 @@ Extracts:
 
 **Purpose**: Retrieve relevant code context.
 
-**Current implementation status**: **Roadmap (not separated yet)**
+**Current implementation status**: **Implemented foundation + persistent semantic index**
 
 **Near-term adapter interface**:
 - file search
 - symbol search
 - semantic search
 - dependency and call graph retrieval
+
+Implemented modules:
+- `src/coding_agent/retrieval/adapters.py::LocalCodeSearchAdapter`
+- `src/coding_agent/retrieval/semantic_index.py::PersistentSemanticIndex`
 
 Defined contracts are in:
 - `src/coding_agent/layers/contracts.py::CodeSearchPort`
@@ -125,11 +142,15 @@ Defined contracts are in:
 **Purpose**: Execute tool operations selected by orchestrator/reasoning layer.
 
 **Current implementation**:
-- `src/coding_agent/execution/command_runner.py`
-- dispatch via `src/coding_agent/presentation/web_app.py`
+- `src/coding_agent/tools/registry.py` (tool contract + execution)
+- `src/coding_agent/tools/builders.py` (default toolset)
+- `src/coding_agent/workspace_manager.py` (secure workspace file operations)
+- dispatch via `src/coding_agent/presentation/chat_service.py` and `web_app.py`
 
 **Integration points**:
-- command execution
+- file read/create/write/edit/delete/rename/list/search
+- command execution and test execution
+- git status/diff/log/branch/add/commit
 - endpoint-dispatched first-run/run-plan/rotate-key
 
 ---
@@ -138,12 +159,16 @@ Defined contracts are in:
 
 **Purpose**: Safe structured code edits.
 
-**Current implementation status**: **Roadmap (not separated yet)**
+**Current implementation status**: **Implemented foundation**
 
 **Near-term adapter interface**:
 - replace text
 - insert after anchor
 - symbol-aware replace
+
+Implemented modules:
+- `src/coding_agent/editing/structured_editor.py`
+- `src/coding_agent/presentation/chat_service.py` (repo-scoped create/modify flows)
 
 Defined contracts are in:
 - `src/coding_agent/layers/contracts.py::CodeEditingEnginePort`
@@ -206,6 +231,7 @@ Defined contracts are in:
 - command block list
 - HMAC-signed checkpoint envelopes + key rotation
 - guarded lifecycle state transitions
+- approval tokens for destructive operations
 
 ---
 
@@ -231,6 +257,20 @@ Added:
 Purpose:
 - one place to compose runtime components
 - clear visibility of what layer is implemented vs roadmap
+- runtime mode wiring (`safe|auto|full`) and optional provider registration
+
+### 3.4 New Governance/Capability Components
+
+Added:
+- `src/coding_agent/tools/capabilities.py`
+- `src/coding_agent/tools/doctor.py`
+- `src/coding_agent/tools/advisor.py`
+- `src/coding_agent/tools/approval_tokens.py`
+
+Purpose:
+- dynamic self-description (`/tools`, `/capabilities`, `/doctor`, `/status`)
+- approval-token workflow for destructive actions
+- operational improvement guidance based on actual runtime
 
 ### 3.3 Compatibility shims
 
@@ -254,6 +294,13 @@ Recommended mental model:
 ---
 
 ## 5) Integration Strategy for Future Expansion
+
+## 5.0 Current UI/API additions
+
+- `/guide` for end-user operating guide and roadmap
+- `/api/acceptance/run`, `/api/acceptance/report` one-click acceptance flow
+- `/api/index/rebuild` semantic index refresh
+- `/api/approvals/*` approval request/approve/list workflow
 
 ## 5.1 LLM Provider Integration
 

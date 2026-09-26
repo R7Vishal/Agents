@@ -6,7 +6,7 @@
 - **Version**: `0.1.0`
 - **Runtime**: Python `>=3.10`
 - **Primary Interfaces**: CLI + Flask Web UI
-- **Date**: 2026-09-24
+- **Date**: 2026-09-26
 
 ---
 
@@ -20,6 +20,7 @@ This document describes the current implementation of the Coding Agent, includin
 - Integrity and resume controls
 - Conversational chat behavior (Copilot-like UI mode)
 - Observability, testing, and operational guidance
+- Semantic indexing, approval-token workflow, and benchmark/acceptance automation
 
 ### 2.1 In-Scope
 
@@ -30,10 +31,13 @@ This document describes the current implementation of the Coding Agent, includin
 - Checkpoint integrity with HMAC signing + key rotation
 - Web UI async execution orchestration
 - Session-based conversational endpoint
+- Workspace-bounded filesystem tooling and dynamic capability discovery
+- Optional provider-backed LLM integration (policy-gated)
+- Guide page and one-click acceptance/benchmark automation
 
 ### 2.2 Out-of-Scope
 
-- External LLM provider integration (OpenAI/Azure/OpenRouter)
+- Always-on provider integration by default (provider remains opt-in via environment)
 - Multi-user authN/authZ for API access
 - Distributed task execution across workers
 - Persistent DB-backed chat history (chat session history is in-memory)
@@ -58,6 +62,8 @@ The system follows a modular local-orchestration architecture:
    - JSONL event stream per run in `.agent_logs/<run-id>.jsonl`
 6. **Presentation layer**
    - Markdown report renderers and web chat UI template
+7. **Tool governance layer**
+  - Tool registry, capability manager, approval tokens, doctor/advisor introspection
 
 ---
 
@@ -73,6 +79,7 @@ The system follows a modular local-orchestration architecture:
 - `src/coding_agent/presentation/web_app.py`
   - Flask app factory (`create_app`)
   - Serves chat UI (`/`)
+  - Serves guide page (`/guide`)
   - Exposes operational APIs (`/api/*`)
   - Manages in-process async job queue for long-running runs
 
@@ -163,7 +170,31 @@ The system follows a modular local-orchestration architecture:
 - `src/coding_agent/reasoning/provider.py`
   - `LLMProvider` protocol, `LLMGateway`, and `NullLLMProvider`
 
-Note: this project currently keeps reasoning as abstraction only; no runtime LLM provider is wired.
+Note: default remains `NullLLMProvider`, but `OpenAICompatibleProvider` can be enabled through environment policy.
+
+### 4.9 Tooling, capabilities, and workspace manager
+
+- `src/coding_agent/workspace_manager.py`
+  - Secure workspace boundary, path normalization, traversal prevention
+  - File and search primitives used by tool layer
+- `src/coding_agent/tools/registry.py`
+  - Tool registration/execution contract with structured result model
+- `src/coding_agent/tools/builders.py`
+  - Default filesystem/command/test/git toolset
+- `src/coding_agent/tools/capabilities.py`
+  - Dynamic capabilities computed from real tool registration
+- `src/coding_agent/tools/doctor.py`
+  - Runtime health summary from actual capabilities/config
+- `src/coding_agent/tools/approval_tokens.py`
+  - Approval request/approve/consume workflow for destructive actions
+
+### 4.10 Retrieval/semantic index
+
+- `src/coding_agent/retrieval/semantic_index.py`
+  - Persistent TF-IDF-like index under `.agent_state/semantic_index.json`
+  - Fast semantic lookup with persisted index reuse
+- `src/coding_agent/retrieval/adapters.py`
+  - Uses persistent index first, fallback scanning when needed
 
 ### 4.9 UI template
 
@@ -226,6 +257,29 @@ Primary dataclasses and enums are defined in `src/coding_agent/models.py`.
 12. Finalize run state (`COMPLETED` or `BLOCKED`)
 13. Render execution report
 
+### 6.3 Chat-driven execution state
+
+Chat responses include structured execution state:
+- conversation/task metadata
+- current step and plan snapshot
+- tool call timeline
+- files changed / tests run / errors list
+
+This enables UI visualization without exposing internal reasoning.
+
+### 6.4 Destructive action approval token flow
+
+1. Action requires token (`delete_file`, `git_commit`)
+2. Tool returns `approval_required` + generated request metadata
+3. User approves request via API/UI
+4. Approved token is consumed once during destructive action
+5. Expired/used tokens are rejected
+
+APIs:
+- `POST /api/approvals/request`
+- `POST /api/approvals/approve`
+- `GET /api/approvals`
+
 ---
 
 ## 7) Task Graph Contract
@@ -254,6 +308,16 @@ Validation rules:
 
 - Task IDs must be unique
 - Every dependency must point to an existing task ID
+
+## 8) Additional web APIs (latest)
+
+- `GET /guide`
+- `POST /api/index/rebuild`
+- `GET /api/reasoning/telemetry`
+- `POST /api/acceptance/run`
+- `GET /api/acceptance/report`
+
+These complement the existing chat/plan APIs with operational transparency and validation automation.
 
 Scheduling behavior:
 

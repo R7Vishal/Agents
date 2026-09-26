@@ -49,7 +49,6 @@ src/coding_agent/presentation/__init__.py
 src/coding_agent/presentation/chat_service.py
 src/coding_agent/presentation/web_app.py
 src/coding_agent/reasoning/__init__.py
-src/coding_agent/reasoning/lmstudio.py
 src/coding_agent/reasoning/provider.py
 src/coding_agent/reasoning/router.py
 src/coding_agent/reasoning/types.py
@@ -65,9 +64,6 @@ tests/test_key_rotation.py
 tests/test_layers_structure.py
 tests/test_lifecycle.py
 tests/test_planner.py
-tests/test_reasoning_gateway_fallback.py
-tests/test_reasoning_lmstudio.py
-tests/test_reasoning_provider_contract.py
 tests/test_reasoning_router.py
 tests/test_repo_intel.py
 tests/test_resume_preview_and_integrity.py

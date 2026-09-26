@@ -100,3 +100,5 @@ class ProviderAuditEvent:
     error_code: str = ""
     fallback_used: bool = False
     fallback_model_key: str = ""
+    duration_ms: int = 0
+    total_tokens: int = 0

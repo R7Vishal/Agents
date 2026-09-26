@@ -4,12 +4,14 @@ import re
 from pathlib import Path
 
 from ..layers.contracts import SearchHit
+from .semantic_index import PersistentSemanticIndex
 
 
 class LocalCodeSearchAdapter:
     def __init__(self, repo_path: Path, max_file_size_bytes: int = 1_000_000) -> None:
         self.repo_path = repo_path
         self.max_file_size_bytes = max_file_size_bytes
+        self.semantic_index = PersistentSemanticIndex(repo_path)
 
     def file_search(self, query: str) -> list[SearchHit]:
         normalized = query.strip().lower()
@@ -62,6 +64,10 @@ class LocalCodeSearchAdapter:
         return hits[:100]
 
     def semantic_search(self, query: str) -> list[SearchHit]:
+        indexed_hits = self._semantic_search_indexed(query)
+        if indexed_hits:
+            return indexed_hits
+
         terms = [term for term in re.split(r"\W+", query.lower()) if len(term) >= 3]
         if not terms:
             return []
@@ -91,6 +97,31 @@ class LocalCodeSearchAdapter:
 
         hits.sort(key=lambda item: item.score, reverse=True)
         return hits[:100]
+
+    def rebuild_semantic_index(self) -> dict[str, object]:
+        return self.semantic_index.build(root=self.repo_path, max_file_size_bytes=self.max_file_size_bytes)
+
+    def _semantic_search_indexed(self, query: str) -> list[SearchHit]:
+        if not self.semantic_index.is_ready():
+            self.semantic_index.build(root=self.repo_path, max_file_size_bytes=self.max_file_size_bytes)
+        scored = self.semantic_index.search(query, max_results=100)
+        if not scored:
+            return []
+
+        hits: list[SearchHit] = []
+        for item in scored:
+            file_path = self.repo_path / str(item["path"])
+            content = self._read_file(file_path)
+            snippet = self._extract_snippet(content, 0) if content else ""
+            hits.append(
+                SearchHit(
+                    file_path=str(item["path"]),
+                    snippet=snippet,
+                    score=float(item["score"]),
+                    symbol="",
+                )
+            )
+        return hits
 
     def dependency_search(self, symbol: str) -> list[SearchHit]:
         normalized = symbol.strip()

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
+import time
 from dataclasses import dataclass
 from typing import Any, Iterable, Protocol
+from urllib import request as urllib_request
+from urllib import error as urllib_error
 
 from .types import (
     ProviderAuditEvent,
@@ -93,14 +97,18 @@ class LLMGateway:
         return "Provider error: unknown"
 
     def invoke(self, request: ProviderRequest) -> ProviderResponse:
+        started = time.perf_counter()
         provider = self.resolve_provider(request.routing.selected_model_key)
         response = provider.invoke(request)
+        duration_ms = int((time.perf_counter() - started) * 1000)
         if response.ok:
             self._record_audit(
                 event="provider_invoke",
                 request=request,
                 provider_name=response.provider_name,
                 success=True,
+                duration_ms=duration_ms,
+                total_tokens=response.usage.total_tokens,
             )
             return response
 
@@ -130,6 +138,8 @@ class LLMGateway:
                 error_code=response.error.code.value if response.error else "",
                 fallback_used=True,
                 fallback_model_key=request.routing.fallback_model_key,
+                duration_ms=duration_ms,
+                total_tokens=fallback_response.usage.total_tokens,
             )
             if fallback_response.ok:
                 return fallback_response
@@ -140,6 +150,8 @@ class LLMGateway:
             provider_name=response.provider_name,
             success=False,
             error_code=response.error.code.value if response.error else "",
+            duration_ms=duration_ms,
+            total_tokens=response.usage.total_tokens,
         )
         return response
 
@@ -202,6 +214,8 @@ class LLMGateway:
         error_code: str = "",
         fallback_used: bool = False,
         fallback_model_key: str = "",
+        duration_ms: int = 0,
+        total_tokens: int = 0,
     ) -> None:
         self._audit_events.append(
             ProviderAuditEvent(
@@ -213,8 +227,122 @@ class LLMGateway:
                 error_code=error_code,
                 fallback_used=fallback_used,
                 fallback_model_key=fallback_model_key,
+                duration_ms=duration_ms,
+                total_tokens=total_tokens,
             )
         )
+
+
+@dataclass
+class OpenAICompatibleProvider:
+    name: str = "openai-compatible"
+    base_url: str = ""
+    api_key: str = ""
+    model: str = ""
+    timeout_seconds: int = 60
+
+    @classmethod
+    def from_env(cls) -> "OpenAICompatibleProvider | None":
+        enabled = os.getenv("CODING_AGENT_LLM_PROVIDER", "").strip().lower()
+        if enabled not in {"openai-compatible", "openai", "azure-openai"}:
+            return None
+        base_url = os.getenv("CODING_AGENT_LLM_BASE_URL", "").strip()
+        api_key = os.getenv("CODING_AGENT_LLM_API_KEY", "").strip()
+        model = os.getenv("CODING_AGENT_LLM_MODEL", "").strip()
+        if not base_url or not api_key or not model:
+            return None
+        return cls(base_url=base_url.rstrip("/"), api_key=api_key, model=model)
+
+    def invoke(self, request: ProviderRequest) -> ProviderResponse:
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": "You are a helpful coding assistant."},
+                {"role": "user", "content": request.prompt + (f"\n\nContext:\n{request.context}" if request.context else "")},
+            ],
+            "temperature": 0.2,
+        }
+
+        req = urllib_request.Request(
+            url=f"{self.base_url}/chat/completions",
+            data=json.dumps(payload).encode("utf-8"),
+            method="POST",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+        )
+
+        try:
+            with urllib_request.urlopen(req, timeout=self.timeout_seconds) as resp:
+                body = resp.read().decode("utf-8", errors="ignore")
+            parsed = json.loads(body)
+            content = (
+                parsed.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content", "")
+            )
+            usage_raw = parsed.get("usage", {}) if isinstance(parsed, dict) else {}
+            usage = ProviderUsage(
+                prompt_tokens=int(usage_raw.get("prompt_tokens", 0) or 0),
+                completion_tokens=int(usage_raw.get("completion_tokens", 0) or 0),
+                total_tokens=int(usage_raw.get("total_tokens", 0) or 0),
+            )
+            return ProviderResponse(
+                ok=True,
+                model_key=request.routing.selected_model_key,
+                provider_name=self.name,
+                content=content,
+                usage=usage,
+                raw=body,
+            )
+        except urllib_error.HTTPError as exc:
+            code = ProviderErrorCode.PROVIDER_UNAVAILABLE
+            message = f"HTTP {exc.code}: provider error"
+            if exc.code == 429:
+                code = ProviderErrorCode.RATE_LIMITED
+            return ProviderResponse(
+                ok=False,
+                model_key=request.routing.selected_model_key,
+                provider_name=self.name,
+                error=ProviderError(code=code, message=message, retryable=exc.code in {429, 500, 502, 503, 504}),
+            )
+        except Exception as exc:
+            return ProviderResponse(
+                ok=False,
+                model_key=request.routing.selected_model_key,
+                provider_name=self.name,
+                error=ProviderError(code=ProviderErrorCode.UNKNOWN, message=str(exc), retryable=False),
+            )
+
+    def generate(self, prompt: str, routing: RoutingDecision, context: str = "") -> str:
+        response = self.invoke(ProviderRequest(prompt=prompt, routing=routing, context=context))
+        return response.content if response.ok else ""
+
+    def generate_structured_output(
+        self,
+        prompt: str,
+        routing: RoutingDecision,
+        schema_name: str,
+        context: str = "",
+    ) -> dict[str, Any]:
+        response = self.invoke(ProviderRequest(prompt=prompt, routing=routing, context=context, schema_name=schema_name))
+        if not response.ok:
+            return {"ok": False, "schema": schema_name}
+        try:
+            parsed = json.loads(response.content)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+        return {"ok": True, "schema": schema_name, "raw": response.content}
+
+    def stream_response(self, prompt: str, routing: RoutingDecision, context: str = "") -> Iterable[str]:
+        response = self.invoke(ProviderRequest(prompt=prompt, routing=routing, context=context))
+        if response.ok:
+            yield response.content
+        else:
+            yield response.error.message if response.error else "provider error"
 
 
 @dataclass

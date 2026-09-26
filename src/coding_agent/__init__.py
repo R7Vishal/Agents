@@ -20,6 +20,8 @@ __all__ = [
     "safety",
     "state_store",
     "task_graph",
+    "tools",
+    "workspace_manager",
     "orchestration",
     "verifier",
     "web_app",

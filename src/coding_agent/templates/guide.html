@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coding Agent Guide</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #101a2e;
+      --text: #e8eefb;
+      --muted: #9fb2d4;
+      --border: #2a3b5a;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --brand: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Segoe UI, Inter, Arial, sans-serif;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .top a {
+      color: #d5e3fb;
+      text-decoration: none;
+      border: 1px solid #35507a;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #132140;
+      font-size: 13px;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    h1, h2 { margin: 0 0 10px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 17px; color: #d6e5ff; }
+    p, li { color: var(--muted); line-height: 1.5; }
+    ul { margin: 8px 0 0 20px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 1px solid #35507a;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      color: #d5e3fb;
+      background: #152443;
+    }
+    .status-ok { color: var(--ok); }
+    .status-warn { color: var(--warn); }
+    code {
+      background: #0a1325;
+      border: 1px solid #2f4267;
+      border-radius: 6px;
+      padding: 1px 5px;
+      color: #dbe9ff;
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <h1>Coding Agent Guide</h1>
+      <div>
+        <a href="/">Open Workspace UI</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>What this tool does</h2>
+      <div class="chips">
+        <span class="chip">Workspace-aware coding</span>
+        <span class="chip">File + Git operations</span>
+        <span class="chip">Test execution</span>
+        <span class="chip">Approval workflow</span>
+        <span class="chip">Semantic repository search</span>
+      </div>
+      <ul>
+        <li>Understands requests conversationally and executes through registered tools.</li>
+        <li>Reads/creates/modifies/renames/deletes files inside workspace boundary.</li>
+        <li>Runs commands, runs tests, analyzes failures, and applies bounded repair strategies.</li>
+        <li>Provides dynamic <code>/tools</code>, <code>/capabilities</code>, <code>/doctor</code>, and <code>/status</code> reporting.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>How to use</h2>
+      <ol>
+        <li>Set your repo path in the left panel.</li>
+        <li>Describe the task in the command box.</li>
+        <li>Use <strong>Run Agent</strong> for workflow execution or <strong>Ask Only</strong> for guidance.</li>
+        <li>Review plan, activity, tool timeline, and validation tabs while tasks run.</li>
+        <li>For destructive actions, request and approve token in <strong>Destructive Approval Tokens</strong> panel.</li>
+      </ol>
+      <p><span class="status-ok">Tip:</span> Use the new one-click acceptance button in top bar to validate scenarios end-to-end.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Capabilities overview</h2>
+      <ul>
+        <li><strong>File operations:</strong> read/create/write/edit/delete/rename/list/search.</li>
+        <li><strong>Execution:</strong> safe command execution + auto test command detection.</li>
+        <li><strong>Git:</strong> status, diff, log, branch operations, stage/commit with guardrails.</li>
+        <li><strong>Intelligence:</strong> semantic index + repository structure/context analysis.</li>
+        <li><strong>Governance:</strong> approval tokens for destructive actions and safety policies.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Next implementation phase</h2>
+      <ul>
+        <li><strong>Richer semantic memory:</strong> add chunked embeddings and change-aware re-indexing.</li>
+        <li><strong>Repair intelligence:</strong> multi-file AST-aware fixes and targeted regression selection.</li>
+        <li><strong>LLM policy:</strong> provider routing by cost/latency budgets and stronger telemetry dashboards.</li>
+        <li><strong>Approval UX:</strong> full token lifecycle view with action previews and audit export.</li>
+        <li><strong>Execution observability:</strong> stage durations, retries, and failure-class trends in UI.</li>
+      </ul>
+      <p class="status-warn">Note: Provider-backed inference requires environment configuration before activation.</p>
+    </div>
+  </div>
+</body>
+</html>

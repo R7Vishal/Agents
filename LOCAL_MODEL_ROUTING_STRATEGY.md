@@ -1,10 +1,10 @@
-# Local Model Routing Strategy (Abstraction Only)
+# Local Model Routing Strategy (Policy-Gated Runtime Integration)
 
-This project currently does **not** integrate with any LLM runtime.
+This project keeps a **safe default** reasoning configuration:
 
-No model is installed or invoked by default.
-
-The reasoning layer is implemented as an abstraction for future integration with local or cloud providers.
+- No external provider is invoked by default (`NullLLMProvider`)
+- Optional provider-backed inference is supported via environment configuration
+- Routing and telemetry are always available for observability
 
 ## Hardware assumptions
 
@@ -26,10 +26,19 @@ The reasoning layer is implemented as an abstraction for future integration with
 - `src/coding_agent/reasoning/provider.py`
   - `LLMGateway`
   - `NullLLMProvider`
+  - `OpenAICompatibleProvider` (optional)
 - `src/coding_agent/presentation/web_app.py`
   - `POST /api/reasoning/route` for route inspection (no model invocation)
 - `src/coding_agent/composition.py`
-  - default local-first routing policy + null provider wiring
+  - default local-first routing policy + optional provider registration
+
+Runtime env toggles:
+
+- `CODING_AGENT_ALLOW_CLOUD=true|false`
+- `CODING_AGENT_LLM_PROVIDER=openai-compatible`
+- `CODING_AGENT_LLM_BASE_URL=<provider-base-url>`
+- `CODING_AGENT_LLM_API_KEY=<api-key>`
+- `CODING_AGENT_LLM_MODEL=<model-id>`
 
 ## Routing policy
 
@@ -45,17 +54,24 @@ Heuristic path:
 - MEDIUM -> 7B profile
 - HARD -> 7B profile (local-only mode) unless cloud fallback is enabled later
 
+Telemetry:
+
+- Provider invocation audit events are captured (success/failure, tokens, latency)
+- Available via `GET /api/reasoning/telemetry`
+
 ## Why this approach
 
 - Keeps current application lightweight and deterministic
 - Avoids adding inference/runtime dependencies before needed
 - Preserves a clean plug-in point for Ollama/Azure/OpenAI integration later
 
-## Integration path (future)
+## Integration path
 
 1. Add concrete provider class implementing `LLMProvider`
 2. Register provider with `LLMGateway.register_provider(model_key, provider)`
 3. Keep existing orchestration and UI unchanged
+
+The repository already includes step 1 and 2 for OpenAI-compatible APIs; additional providers can follow the same contract.
 
 No architectural rewrites are required when providers are introduced.
 
