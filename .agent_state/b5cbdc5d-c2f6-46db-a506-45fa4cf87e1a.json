@@ -1,0 +1,79 @@
+{
+  "run_id": "b5cbdc5d-c2f6-46db-a506-45fa4cf87e1a",
+  "requirement": "Execute controlled task plan.",
+  "state": "BLOCKED",
+  "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent",
+  "notes": {
+    "mode": "run-plan",
+    "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\resume-blocked-plan.json",
+    "max_repair_attempts_per_task": 0,
+    "results": [
+      {
+        "task_id": "T1",
+        "status": "COMPLETED",
+        "attempts": 1,
+        "repair_attempts": 0,
+        "failure_type": null,
+        "message": "Task completed",
+        "duration_ms": 225
+      },
+      {
+        "task_id": "T2",
+        "status": "FAILED",
+        "attempts": 1,
+        "repair_attempts": 0,
+        "failure_type": "UNKNOWN",
+        "message": "Task command failed after repair budget",
+        "duration_ms": 245
+      }
+    ],
+    "checkpoint": {
+      "data": {
+        "T1": {
+          "status": "PENDING",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": ""
+        },
+        "T2": {
+          "status": "FAILED",
+          "attempts": 1,
+          "repair_attempts": 0,
+          "failure_type": "UNKNOWN"
+        }
+      },
+      "algorithm": "HMAC-SHA256",
+      "signature": "29dae69fe28fc8632aaf34f998ff1af65d766ce494d6208cf1d964b70c9a3d06"
+    },
+    "resume_policy_block": {
+      "resume_max_risk": 3,
+      "blocked": [
+        {
+          "task_id": "T2",
+          "risk_score": 5,
+          "risk_level": "HIGH",
+          "reason": "Pending retry; Previous failure: UNKNOWN; Prior attempts: 1; Depends on 1 task(s)",
+          "recommendation": "Python fix class: rerun with verbose traceback and apply minimal patch"
+        }
+      ]
+    },
+    "integrity_forensics": {
+      "envelope_type": "hmac",
+      "algorithm": "HMAC-SHA256",
+      "expected_signature": "29dae69fe28fc8632aaf34f998ff1af65d766ce494d6208cf1d964b70c9a3d06",
+      "actual_signature": "aa227c597baad36d13f46baaa15207ed35c95c1ca5abcaba8e66b7c649c6bdf6",
+      "expected_hash": "",
+      "actual_hash": "1984c9cb500accdc699a9ef9e9519fa8e3ea30ec227f50be3f8ce8395ab99b3b",
+      "task_ids": [
+        "T1",
+        "T2"
+      ],
+      "task_count": 2,
+      "payload_keys": [
+        "T1",
+        "T2"
+      ]
+    }
+  },
+  "updated_at": "2026-09-24T02:45:24.111976+00:00"
+}

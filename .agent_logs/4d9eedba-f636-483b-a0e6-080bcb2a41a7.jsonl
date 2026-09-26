@@ -1,0 +1,11 @@
+{"timestamp": "2026-09-24T03:04:09.885322+00:00", "event": "run_started", "mode": "run-plan", "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent", "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\resume-blocked-plan.json", "resumed": false}
+{"timestamp": "2026-09-24T03:04:09.889325+00:00", "event": "checkpoint_loaded", "completed": 0, "integrity": "verified"}
+{"timestamp": "2026-09-24T03:04:09.892877+00:00", "event": "state_transition", "state": "EXECUTING"}
+{"timestamp": "2026-09-24T03:04:09.894876+00:00", "event": "task_event", "type": "task_started", "task_id": "T1", "attempt": 1}
+{"timestamp": "2026-09-24T03:04:10.292030+00:00", "event": "task_event", "type": "task_completed", "task_id": "T1", "duration_ms": 397}
+{"timestamp": "2026-09-24T03:04:10.295575+00:00", "event": "task_event", "type": "task_started", "task_id": "T2", "attempt": 1}
+{"timestamp": "2026-09-24T03:04:10.597209+00:00", "event": "task_event", "type": "task_failed", "task_id": "T2", "failure_type": "UNKNOWN", "message": "task command failed after repair budget", "duration_ms": 301}
+{"timestamp": "2026-09-24T03:04:10.604208+00:00", "event": "run_completed", "mode": "run-plan", "state": "BLOCKED"}
+{"timestamp": "2026-09-24T03:04:11.014371+00:00", "event": "run_started", "mode": "run-plan", "repo_path": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent", "plan_file": "C:\\Users\\6522648\\Downloads\\PCC_Code_Base\\coding-agent\\examples\\resume-blocked-plan.json", "resumed": true}
+{"timestamp": "2026-09-24T03:04:11.016368+00:00", "event": "checkpoint_loaded", "completed": 1, "integrity": "verified"}
+{"timestamp": "2026-09-24T03:04:11.018362+00:00", "event": "resume_dry_run", "run_id": "4d9eedba-f636-483b-a0e6-080bcb2a41a7"}

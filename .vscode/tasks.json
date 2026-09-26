@@ -37,6 +37,13 @@
       "type": "shell",
       "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\run-provider-contract-tests.ps1 -ProjectPath .",
       "problemMatcher": []
+    },
+    {
+      "label": "Coding Agent: Setup + Run UI",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\setup-and-run-agent.ps1 -ProjectPath . -Mode ui",
+      "isBackground": true,
+      "problemMatcher": []
     }
   ]
 }
